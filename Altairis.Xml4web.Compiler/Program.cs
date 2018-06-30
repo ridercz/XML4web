@@ -33,6 +33,9 @@ namespace Altairis.Xml4web.Compiler {
                 Console.WriteLine($"ERROR: File '{buildScriptFileName}' was not found!");
                 Environment.Exit(ERRORLEVEL_FAILURE);
             }
+            var tsw = new Stopwatch();
+            tsw.Start();
+
 
             // Load configuration
             Console.Write("Loading configuration...");
@@ -62,7 +65,16 @@ namespace Altairis.Xml4web.Compiler {
                     SplitFile(outputFileName, templateFileName + ".log");
                     File.Delete(outputFileName);
                 }
+            }
 
+            // Check if there are some errors
+            tsw.Stop();
+            var logFiles = Directory.GetFiles(config.FolderName, "*.log");
+            if (!logFiles.Any()) {
+                Console.WriteLine($"Build completed successfully in {tsw.ElapsedMilliseconds} ms.");
+            } else {
+                Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
+                Console.WriteLine(logFiles.Select(s => "  " + s + Environment.NewLine));
             }
         }
 
