@@ -11,7 +11,7 @@
   "IdMapFileName": "id-map.tsv",
   "SiteMetadata": {
     "x4w:url": "https://www.bdsm.cz/",
-    "dcterms_language": "cs-CZ",
+    "dcterms:language": "cs-CZ",
     "dcterms:title": "BDSM.CZ",
     "dcterms:description": "Nejstarší český server o sadomasochismu ve všech jeho podobách"
   }
