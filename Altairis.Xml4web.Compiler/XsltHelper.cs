@@ -10,10 +10,12 @@ using Markdig;
 
 namespace Altairis.Xml4web.Compiler {
     public class XsltHelper {
-        private readonly string _basePath;
+        private readonly string _sourceBasePath;
+        private readonly string _targetBasePath;
 
         public XsltHelper(string basePath) {
-            _basePath = basePath;
+            _sourceBasePath = Path.Combine(basePath, "src");
+            _targetBasePath = Path.Combine(basePath, "site");
         }
 
         public string FormatDateTime(string dateTime, string formatString, string culture) {
@@ -30,13 +32,12 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         public string ImportText(string fileName) {
-            fileName = fileName.Trim('/', '\\'); var fullFileName = Path.Combine(_basePath, fileName);
+            var fullFileName = Path.Combine(_sourceBasePath, fileName.Trim('/', '\\'));
             return File.ReadAllText(fullFileName);
         }
 
         public string ImportMarkdown(string fileName) {
-            fileName = fileName.Trim('/', '\\');
-            var fullFileName = Path.Combine(_basePath, fileName);
+            var fullFileName = Path.Combine(_sourceBasePath, fileName.Trim('/', '\\'));
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
             var mdLines = File.ReadAllLines(fullFileName);
             var mdSb = new StringBuilder();
@@ -49,6 +50,18 @@ namespace Altairis.Xml4web.Compiler {
             return html;
         }
 
+        public string CopyAttachments(string sourceFolder, string targetFolder) {
+            var fullSourceFolder = Path.Combine(_sourceBasePath, sourceFolder.Trim('/', '\\'));
+            var fullTargetFolder = Path.Combine(_targetBasePath, targetFolder.Trim('/', '\\'));
+
+            foreach (var file in Directory.GetFiles(fullSourceFolder)) {
+                var fileNameOnly = Path.GetFileName(file);
+                if (fileNameOnly.Equals("index.md", StringComparison.OrdinalIgnoreCase)) continue;
+                Directory.CreateDirectory(fullTargetFolder);
+                File.Copy(file, Path.Combine(fullTargetFolder, fileNameOnly), overwrite: true);
+            }
+            return string.Empty;
+        }
 
     }
 }

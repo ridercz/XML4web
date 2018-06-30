@@ -86,8 +86,6 @@ namespace Altairis.Xml4web.Compiler {
             }
         }
 
-
-
         private static void PrepareFileSystem() {
             // Delete log files
             try {
@@ -151,7 +149,7 @@ namespace Altairis.Xml4web.Compiler {
 
                 // Prepare transformation
                 var args = new XsltArgumentList();
-                args.AddExtensionObject(Namespaces.X4H, new XsltHelper(Path.Combine(config.FolderName, INPUT_FOLDER)));
+                args.AddExtensionObject(Namespaces.X4H, new XsltHelper(config.FolderName));
 
                 var tran = new XslCompiledTransform();
                 tran.Load(templateFileName, XsltSettings.TrustedXslt, new XmlUrlResolver());
