@@ -59,14 +59,14 @@ namespace Altairis.Xml4web.Compiler {
                     // Multi-document transform
                     var outputFileName = Path.Combine(config.FolderName, OUTPUT_FOLDER, Guid.NewGuid().ToString() + ".xml");
                     RunTransform(metadataDocument, templateFileName, outputFileName);
-                    SplitFile(outputFileName);
+                    SplitFile(outputFileName, templateFileName + ".log");
                     File.Delete(outputFileName);
                 }
 
             }
         }
 
-        private static void SplitFile(string inputFileName) {
+        private static void SplitFile(string inputFileName, string errorLogFile) {
             Console.WriteLine("Splitting file:");
             var multiDoc = new HtmlDocument();
             multiDoc.Load(inputFileName);
@@ -76,13 +76,18 @@ namespace Altairis.Xml4web.Compiler {
             foreach (var item in documentNodes) {
                 var href = item.GetAttributeValue("href", null).Trim('/', '\\');
                 if (string.IsNullOrWhiteSpace(href)) continue;
-                Console.Write($"  {href}...");
-
-                var fileName = Path.Combine(config.FolderName, OUTPUT_FOLDER, href);
-                Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-                File.WriteAllText(fileName, item.InnerHtml);
-
-                Console.WriteLine("OK");
+                try {
+                    Console.Write($"  {href}...");
+                    var fileName = Path.Combine(config.FolderName, OUTPUT_FOLDER, href);
+                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+                    File.WriteAllText(fileName, item.InnerHtml);
+                    Console.WriteLine("OK");
+                }
+                catch (Exception ex) {
+                    Console.WriteLine("Failed!");
+                    Console.WriteLine(ex.Message);
+                    File.AppendAllText(errorLogFile, $"\r\n{href}\r\n{ex}");
+                }
             }
         }
 
