@@ -11,6 +11,8 @@ using System.Xml.Schema;
 
 namespace Altairis.Xml4web.Compiler {
     public class SiteMetadataDocument : XmlDocument {
+        private const string INPUT_FOLDER = "src";
+
         XmlNamespaceManager _nsmgr;
 
         public ICollection<KeyValuePair<string, string>> Errors { get; }
@@ -18,8 +20,8 @@ namespace Altairis.Xml4web.Compiler {
 
         public static SiteMetadataDocument CreateFromFolder(string folderName) {
             var doc = new SiteMetadataDocument(Path.Combine(folderName, "src\\namespaces.txt"));
-            doc.BasePath = Path.Combine(folderName, "src").TrimEnd('\\');
-            doc.AddPageMetadata(Path.Combine(folderName, "src"), doc.DocumentElement);
+            doc.BasePath = Path.Combine(folderName, INPUT_FOLDER).TrimEnd('\\');
+            doc.AddPageMetadata(Path.Combine(folderName, INPUT_FOLDER), doc.DocumentElement);
             return doc;
         }
 
@@ -32,9 +34,10 @@ namespace Altairis.Xml4web.Compiler {
 
             // Add default namespaces
             _nsmgr = new XmlNamespaceManager(this.NameTable);
-            _nsmgr.AddNamespace("dcterms", "http://purl.org/dc/terms/");
-            _nsmgr.AddNamespace("dc", "http://purl.org/dc/elements/1.1/");
-            _nsmgr.AddNamespace("x4w", "http://schemas.altairis.cz/XML4web/PageMetadata/");
+            _nsmgr.AddNamespace("dcterms", Namespaces.DCTerms);
+            _nsmgr.AddNamespace("dc", Namespaces.DC);
+            _nsmgr.AddNamespace("x4w", Namespaces.X4W);
+            _nsmgr.AddNamespace("x4h", Namespaces.X4H);
 
             // Add namespaces from file
             var lines = File.ReadAllLines(namespaceFile);

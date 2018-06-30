@@ -19,5 +19,8 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         public string FolderName { get; set; }
+
+        public Dictionary<string, string> Transforms { get; set; }
+
     }
 }

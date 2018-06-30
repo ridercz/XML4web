@@ -1,3 +1,7 @@
 {
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published"
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published",
+  "Transforms": {
+    "HomePage.xslt": "index.html",
+    "Articles.xslt": ""
+  }
 }
