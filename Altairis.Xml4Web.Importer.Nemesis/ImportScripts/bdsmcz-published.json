@@ -1,0 +1,11 @@
+{
+  "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=BdsmMagazin",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\src",
+  "ImportPictures": true,
+  "ImportExternal": true,
+  "ImportPublished": true,
+  "ImportUnpublished": false,
+  "FileNameFormat": "articles/$(ArticleId)-$(Title)",
+  "IdentifierFormat": "$(ArticleId)-$(Title)",
+  "ConvertHtmlToMarkdown": true
+}

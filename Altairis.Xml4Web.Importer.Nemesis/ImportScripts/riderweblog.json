@@ -1,0 +1,12 @@
+{
+  "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=RiderWeblog",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairone\\src",
+  "ImportPictures": true,
+  "ImportExternal": false,
+  "ImportPublished": true,
+  "ImportUnpublished": false,
+  "FileNameFormat": "$(DatePublished:yyyy)/$(DatePublished:MM)/$(Title)",
+  "IdentifierFormat": "riderweblog#$(ArticleId)",
+  "ConvertHtmlToMarkdown": true,
+  "IdMapFileName": "id-map.riderweblog.tsv"
+}
