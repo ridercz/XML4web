@@ -43,9 +43,17 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             File.WriteAllText(Path.Combine(config.FolderName, "namespaces.txt"), Properties.Resources.Namespaces);
             Console.WriteLine("OK");
 
+            // Create site metadata file
+            Console.Write("Saving site metadata...");
+            var siteMetadataBuilder = new StringBuilder();
+            foreach (var item in config.SiteMetadata) {
+                siteMetadataBuilder.AppendMetadataLine(item.Key, item.Value);
+            }
+            File.WriteAllText(Path.Combine(config.FolderName, "index.md"), siteMetadataBuilder.ToString());
+            Console.WriteLine("OK");
+
             // Load data from database
             Console.Write("Loading articles from database...");
-
             using (var da = new SqlDataAdapter(Properties.Resources.ArticleDump, config.ConnectionString)) {
                 articles = new DataTable();
                 da.Fill(articles);
@@ -53,10 +61,17 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             Console.WriteLine($"OK, {articles.Rows.Count} items");
 
             // Process all rows
+            var importedCount = 0;
+            var skippedCount = 0;
             var idMapSb = new StringBuilder();
             foreach (DataRow row in articles.Rows) {
                 var newId = ProcessArticle(row);
-                idMapSb.AppendLine(string.Join('\t', row["ArticleId"], newId));
+                if (string.IsNullOrEmpty(newId)) {
+                    skippedCount++;
+                }else {
+                    importedCount++;
+                    idMapSb.AppendLine(string.Join('\t', row["ArticleId"], newId));
+                }
             }
 
             // Create ID map file
@@ -65,6 +80,8 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 File.WriteAllText(Path.Combine(config.FolderName, config.IdMapFileName), idMapSb.ToString());
                 Console.WriteLine("OK");
             }
+
+            Console.WriteLine($"Import completed: {importedCount} articles imported, {skippedCount} skipped.");
         }
 
         private static string ProcessArticle(DataRow row) {
