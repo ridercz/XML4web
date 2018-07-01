@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -45,13 +46,15 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             Console.WriteLine("OK");
 
             // Create site metadata file
-            Console.Write("Saving site metadata...");
-            var siteMetadataBuilder = new StringBuilder();
-            foreach (var item in config.SiteMetadata) {
-                siteMetadataBuilder.AppendMetadataLine(item.Key, item.Value);
+            if (config.SiteMetadata.Any()) {
+                Console.Write("Saving site metadata...");
+                var siteMetadataBuilder = new StringBuilder();
+                foreach (var item in config.SiteMetadata) {
+                    siteMetadataBuilder.AppendMetadataLine(item.Key, item.Value);
+                }
+                File.WriteAllText(Path.Combine(config.FolderName, "index.md"), siteMetadataBuilder.ToString());
+                Console.WriteLine("OK");
             }
-            File.WriteAllText(Path.Combine(config.FolderName, "index.md"), siteMetadataBuilder.ToString());
-            Console.WriteLine("OK");
 
             // Load data from database
             Console.Write("Loading articles from database...");
