@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using HtmlAgilityPack;
 
 namespace Altairis.Xml4Web.Importer.Nemesis {
     class Program {
@@ -173,12 +174,58 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             else {
                 sb.Append(html);
             }
+
+            // Analyze links if required
+            if (!string.IsNullOrEmpty(config.LinkListFileName)) AnalyzeLinks(newId, html);
+
+            // Save file
             Console.Write("  Saving file...");
             Directory.CreateDirectory(Path.GetDirectoryName(fileName));
             File.WriteAllText(fileName, sb.ToString());
             Console.WriteLine("OK");
 
             return newId;
+        }
+
+        private static void AnalyzeLinks(string newId, string html) {
+            Console.Write("  Analyzing links...");
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+
+            var sb = new StringBuilder();
+            var counter = 0;
+
+            var aHrefNodes = doc.DocumentNode.SelectNodes("//a");
+            if (aHrefNodes != null) {
+                foreach (var item in aHrefNodes) {
+                    var val = item.GetAttributeValue("href", null);
+                    if (string.IsNullOrWhiteSpace(val)) continue;
+                    val = val.Replace("&amp;", "&");
+
+                    sb.AppendLine(string.Join('\t', newId, "a_href", val));
+                    counter++;
+                }
+            }
+
+            var imgSrcNodes = doc.DocumentNode.SelectNodes("//img");
+            if (imgSrcNodes != null) {
+                foreach (var item in imgSrcNodes) {
+                    var val = item.GetAttributeValue("src", null);
+                    if (string.IsNullOrWhiteSpace(val)) continue;
+                    val = val.Replace("&amp;", "&");
+
+                    sb.AppendLine(string.Join('\t', newId, "img_src", val));
+                    counter++;
+                }
+            }
+
+            if (counter > 0) {
+                var fileName = Path.Combine(config.FolderName, config.LinkListFileName);
+                File.AppendAllText(fileName, sb.ToString());
+            }
+
+            Console.WriteLine($"OK, found {counter} links");
         }
 
         private static string AddExtensionFromType(string s, string contentType) {

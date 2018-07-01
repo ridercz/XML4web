@@ -10,5 +10,6 @@
   "FileNameFormat": "$(DatePublished:yyyy)/$(DatePublished:MM)/$(Title)",
   "IdentifierFormat": "aspnetcz#$(ArticleId)",
   "ConvertHtmlToMarkdown": true,
-  "IdMapFileName": "id-map.aspnetcz.tsv"
+  "IdMapFileName": "id-map.aspnetcz.tsv",
+  "LinkListFileName": "linklist.aspnetcz.tsv"
 }

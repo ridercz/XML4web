@@ -10,5 +10,6 @@
   "FileNameFormat": "$(DatePublished:yyyy)/$(DatePublished:MM)/$(Title)",
   "IdentifierFormat": "riderweblog#$(ArticleId)",
   "ConvertHtmlToMarkdown": true,
-  "IdMapFileName": "id-map.riderweblog.tsv"
+  "IdMapFileName": "id-map.riderweblog.tsv",
+  "LinkListFileName" : "linklist.riderweblog.tsv"
 }
