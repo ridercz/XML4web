@@ -35,8 +35,6 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "Sites", "Sites\", "{386787A
 		SlnRelativePath = "Sites\"
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmushPOC", "SmushPOC\SmushPOC.csproj", "{DD59CCC0-405A-4B1C-BF5F-7168AD9958EA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,10 +53,6 @@ Global
 		{386787AB-207C-41D9-85D7-59812B41442A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{386787AB-207C-41D9-85D7-59812B41442A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{386787AB-207C-41D9-85D7-59812B41442A}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{DD59CCC0-405A-4B1C-BF5F-7168AD9958EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DD59CCC0-405A-4B1C-BF5F-7168AD9958EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DD59CCC0-405A-4B1C-BF5F-7168AD9958EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DD59CCC0-405A-4B1C-BF5F-7168AD9958EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
