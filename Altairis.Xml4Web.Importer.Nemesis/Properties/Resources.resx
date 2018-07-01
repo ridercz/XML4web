@@ -117,11 +117,29 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="ArticleDump" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>resources\articledump.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="ArticleDump" xml:space="preserve">
+    <value>SELECT
+	A.ArticleId,
+	A.Title,
+	A.Abstract,
+	A.CategoryId, C.Name AS CategoryName,
+	A.AuthorId, U.Name AS AuthorName, U.Email AS AuthorEmail,
+	A.SerialId, S.Name AS SerialName,
+	A.DateCreated, A.DatePublished, A.DateUpdated,
+	A.AlternateUrl,
+	A.PictureData, A.PictureContentType, A.PictureWidth, A.PictureHeight,
+	A.Body
+FROM
+	Articles AS A
+	LEFT JOIN Categories AS C ON A.CategoryId = C.CategoryId
+	LEFT JOIN Authors AS U ON A.AuthorId = U.AuthorId
+	LEFT JOIN Serials AS S ON A.SerialId =  S.SerialId
+ORDER BY A.ArticleId</value>
   </data>
-  <data name="Namespaces" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>resources\namespaces.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="Namespaces" xml:space="preserve">
+    <value>dcterms:http://purl.org/dc/terms/
+dc:http://purl.org/dc/elements/1.1/
+np9:http://schemas.altairis.cz/Nemesis/Publishing/9/
+x4w:http://schemas.altairis.cz/XML4web/PageMetadata/</value>
   </data>
 </root>
