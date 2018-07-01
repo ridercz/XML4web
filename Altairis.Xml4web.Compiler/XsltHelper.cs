@@ -10,12 +10,10 @@ using Markdig;
 
 namespace Altairis.Xml4web.Compiler {
     public class XsltHelper {
-        private readonly string _sourceBasePath;
-        private readonly string _targetBasePath;
+        private readonly BuildConfiguration _config;
 
-        public XsltHelper(string basePath) {
-            _sourceBasePath = Path.Combine(basePath, "src");
-            _targetBasePath = Path.Combine(basePath, "site");
+        public XsltHelper(BuildConfiguration config) {
+            _config = config;
         }
 
         public string FormatDateTime(string dateTime, string formatString, string culture) {
@@ -32,12 +30,12 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         public string ImportText(string fileName) {
-            var fullFileName = Path.Combine(_sourceBasePath, fileName.Trim('/', '\\'));
+            var fullFileName = Path.Combine(_config.SourceFolder, fileName.Trim('/', '\\'));
             return File.ReadAllText(fullFileName);
         }
 
         public string ImportMarkdown(string fileName) {
-            var fullFileName = Path.Combine(_sourceBasePath, fileName.Trim('/', '\\'));
+            var fullFileName = Path.Combine(_config.SourceFolder, fileName.Trim('/', '\\'));
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
             var mdLines = File.ReadAllLines(fullFileName);
             var mdSb = new StringBuilder();
@@ -51,8 +49,8 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         public string CopyAttachments(string sourceFolder, string targetFolder) {
-            var fullSourceFolder = Path.Combine(_sourceBasePath, sourceFolder.Trim('/', '\\'));
-            var fullTargetFolder = Path.Combine(_targetBasePath, targetFolder.Trim('/', '\\'));
+            var fullSourceFolder = Path.Combine(_config.SourceFolder, sourceFolder.Trim('/', '\\'));
+            var fullTargetFolder = Path.Combine(_config.TargetFolder, targetFolder.Trim('/', '\\'));
 
             foreach (var file in Directory.GetFiles(fullSourceFolder)) {
                 var fileNameOnly = Path.GetFileName(file);

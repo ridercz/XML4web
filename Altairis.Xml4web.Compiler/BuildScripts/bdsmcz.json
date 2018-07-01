@@ -1,5 +1,9 @@
 {
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published",
+  "SourceFolder": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\source",
+  "TargetFolder": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\target",
+  "StaticFolder": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\static",
+  "XsltFolder": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\xslt",
+  "WorkFolder": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\work",
   "Transforms": {
     "HomePage.xslt": "index.html",
     "Articles.xslt": null

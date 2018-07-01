@@ -11,17 +11,15 @@ using System.Xml.Schema;
 
 namespace Altairis.Xml4web.Compiler {
     public class SiteMetadataDocument : XmlDocument {
-        private const string INPUT_FOLDER = "src";
-
         XmlNamespaceManager _nsmgr;
 
         public ICollection<KeyValuePair<string, string>> Errors { get; }
-        public string BasePath { get; private set; }
+        public string SourceFolderName { get; private set; }
 
-        public static SiteMetadataDocument CreateFromFolder(string folderName) {
-            var doc = new SiteMetadataDocument(Path.Combine(folderName, "src\\namespaces.txt"));
-            doc.BasePath = Path.Combine(folderName, INPUT_FOLDER).TrimEnd('\\');
-            doc.AddPageMetadata(Path.Combine(folderName, INPUT_FOLDER), doc.DocumentElement);
+        public static SiteMetadataDocument CreateFromFolder(string sourceFolderName) {
+            var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "namespaces.txt"));
+            doc.SourceFolderName = sourceFolderName.TrimEnd('\\');
+            doc.AddPageMetadata(doc.SourceFolderName, doc.DocumentElement);
             return doc;
         }
 
@@ -58,7 +56,7 @@ namespace Altairis.Xml4web.Compiler {
         private void AddPageMetadata(string folderName, XmlElement parentElement) {
             // Create item node
             folderName = folderName.TrimEnd('\\');
-            var pathId = folderName.Substring(this.BasePath.Length).Replace('\\', '/') + "/";
+            var pathId = folderName.Substring(this.SourceFolderName.Length).Replace('\\', '/') + "/";
             var itemElement = this.CreateElement("item");
             itemElement.SetAttribute("path", pathId);
 

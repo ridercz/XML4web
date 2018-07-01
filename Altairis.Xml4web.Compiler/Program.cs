@@ -11,11 +11,8 @@ namespace Altairis.Xml4web.Compiler {
     class Program {
         private const int ERRORLEVEL_SUCCESS = 0;
         private const int ERRORLEVEL_FAILURE = 1;
-        private const string INPUT_FOLDER = "src";
-        private const string OUTPUT_FOLDER = "site";
-        private const string STATIC_FOLDER = "static";
 
-        private static BuildConfiguration config;
+        private static BuildConfiguration _config;
 
         static void Main(string[] args) {
             Console.WriteLine("Altairis XML4web Site Compiler");
@@ -39,28 +36,28 @@ namespace Altairis.Xml4web.Compiler {
 
             // Load configuration
             Console.Write("Loading configuration...");
-            config = BuildConfiguration.Load(buildScriptFileName);
+            _config = BuildConfiguration.Load(buildScriptFileName);
             Console.WriteLine("OK");
 
             // Delete and copy needed files
             PrepareFileSystem();
 
             // Create site metadata document
-            var metadataFileName = Path.Combine(config.FolderName, "metadata.xml");
+            var metadataFileName = Path.Combine(_config.WorkFolder, "metadata.xml");
             var metadataDocument = CreateMetadataDocument();
             metadataDocument.Save(metadataFileName);
 
             // Run transforms
-            foreach (var transform in config.Transforms) {
-                var templateFileName = Path.Combine(config.FolderName, transform.Key);
+            foreach (var transform in _config.Transforms) {
+                var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
                 if (!string.IsNullOrEmpty(transform.Value)) {
                     // Simple transform
-                    var outputFileName = Path.Combine(config.FolderName, OUTPUT_FOLDER, transform.Value);
+                    var outputFileName = Path.Combine(_config.TargetFolder, transform.Value);
                     RunTransform(metadataDocument, templateFileName, outputFileName);
                 }
                 else {
                     // Multi-document transform
-                    var outputFileName = Path.Combine(config.FolderName, OUTPUT_FOLDER, Guid.NewGuid().ToString() + ".xml");
+                    var outputFileName = Path.Combine(_config.TargetFolder, Guid.NewGuid().ToString() + ".xml");
                     RunTransform(metadataDocument, templateFileName, outputFileName);
                     SplitFile(outputFileName, templateFileName + ".log");
                     File.Delete(outputFileName);
@@ -69,10 +66,11 @@ namespace Altairis.Xml4web.Compiler {
 
             // Check if there are some errors
             tsw.Stop();
-            var logFiles = Directory.GetFiles(config.FolderName, "*.log");
+            var logFiles = Directory.GetFiles(_config.WorkFolder, "*.log");
             if (!logFiles.Any()) {
                 Console.WriteLine($"Build completed successfully in {tsw.ElapsedMilliseconds} ms.");
-            } else {
+            }
+            else {
                 Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
                 Console.WriteLine(logFiles.Select(s => "  " + s + Environment.NewLine));
             }
@@ -90,7 +88,7 @@ namespace Altairis.Xml4web.Compiler {
                 if (string.IsNullOrWhiteSpace(href)) continue;
                 try {
                     Console.Write($"  {href}...");
-                    var fileName = Path.Combine(config.FolderName, OUTPUT_FOLDER, href);
+                    var fileName = Path.Combine(_config.TargetFolder, href);
                     Directory.CreateDirectory(Path.GetDirectoryName(fileName));
                     File.WriteAllText(fileName, item.InnerHtml);
                     Console.WriteLine("OK");
@@ -104,46 +102,19 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         private static void PrepareFileSystem() {
-            // Delete log files
-            try {
-                Console.Write("Deleting old log files...");
-                foreach (var item in Directory.GetFiles(config.FolderName, "*.log")) {
-                    File.Delete(item);
-                }
-                Console.WriteLine("OK");
-            }
-            catch (Exception ex) {
-                Console.WriteLine("Failed!");
-                Console.WriteLine(ex.Message);
-                Environment.Exit(ERRORLEVEL_FAILURE);
-            }
-
-            // Delete output folder
-            var outputFolder = Path.Combine(config.FolderName, OUTPUT_FOLDER);
-            if (Directory.Exists(outputFolder)) {
-                Console.Write($"Deleting {outputFolder}...");
-                try {
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    Directory.Delete(outputFolder, recursive: true);
-                    sw.Stop();
-                    Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
-                }
-                catch (Exception ex) {
-                    Console.WriteLine("Failed!");
-                    Console.WriteLine(ex.Message);
-                    Environment.Exit(ERRORLEVEL_FAILURE);
-                }
-            }
+            // Delete target and work folder
+            DirectoryDelete(_config.TargetFolder);
+            Directory.CreateDirectory(_config.TargetFolder);
+            DirectoryDelete(_config.WorkFolder);
+            Directory.CreateDirectory(_config.WorkFolder);
 
             // Copy static data to output folder
-            var staticFolder = Path.Combine(config.FolderName, STATIC_FOLDER);
-            if (Directory.Exists(staticFolder)) {
-                Console.Write($"Copying {staticFolder} to {outputFolder}...");
+            if (Directory.Exists(_config.StaticFolder)) {
+                Console.Write($"Copying {_config.StaticFolder} to {_config.TargetFolder}...");
                 try {
                     var sw = new Stopwatch();
                     sw.Start();
-                    DirectoryCopy(staticFolder, outputFolder, copySubDirs: true);
+                    DirectoryCopy(_config.StaticFolder, _config.TargetFolder);
                     sw.Stop();
                     Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
                 }
@@ -166,7 +137,7 @@ namespace Altairis.Xml4web.Compiler {
 
                 // Prepare transformation
                 var args = new XsltArgumentList();
-                args.AddExtensionObject(Namespaces.X4H, new XsltHelper(config.FolderName));
+                args.AddExtensionObject(Namespaces.X4H, new XsltHelper(_config));
 
                 var tran = new XslCompiledTransform();
                 tran.Load(templateFileName, XsltSettings.TrustedXslt, new XmlUrlResolver());
@@ -190,12 +161,12 @@ namespace Altairis.Xml4web.Compiler {
             Console.Write("Creating metadata document...");
             var sw = new Stopwatch();
             sw.Start();
-            var doc = SiteMetadataDocument.CreateFromFolder(config.FolderName);
+            var doc = SiteMetadataDocument.CreateFromFolder(_config.SourceFolder);
             sw.Stop();
 
             if (doc.Errors.Any()) {
                 Console.WriteLine($"Done in {sw.ElapsedMilliseconds} ms with {doc.Errors.Count()} errors, see metadata.xml.log for details.");
-                File.WriteAllLines(Path.Combine(config.FolderName, "metadata.xml.log"), doc.Errors.Select(x => string.Join('\t', x.Key, x.Value)));
+                File.WriteAllLines(Path.Combine(_config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join('\t', x.Key, x.Value)));
             }
             else {
                 Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
@@ -203,34 +174,39 @@ namespace Altairis.Xml4web.Compiler {
             return doc;
         }
 
-        private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs) {
-            // Get the subdirectories for the specified directory.
-            var dir = new DirectoryInfo(sourceDirName);
-
-            if (!dir.Exists) {
-                throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDirName);
-            }
-
-            var dirs = dir.GetDirectories();
-            // If the destination directory doesn't exist, create it.
-            if (!Directory.Exists(destDirName)) {
-                Directory.CreateDirectory(destDirName);
-            }
-
-            // Get the files in the directory and copy them to the new location.
-            var files = dir.GetFiles();
-            foreach (FileInfo file in files) {
-                var temppath = Path.Combine(destDirName, file.Name);
-                file.CopyTo(temppath, false);
-            }
-
-            // If copying subdirectories, copy them and their contents to new location.
-            if (copySubDirs) {
-                foreach (DirectoryInfo subdir in dirs) {
-                    var temppath = Path.Combine(destDirName, subdir.Name);
-                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+        private static void DirectoryDelete(string folderName) {
+            if (Directory.Exists(folderName)) {
+                Console.Write($"Deleting {folderName}...");
+                try {
+                    var sw = new Stopwatch();
+                    sw.Start();
+                    Directory.Delete(folderName, recursive: true);
+                    sw.Stop();
+                    Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
+                }
+                catch (Exception ex) {
+                    Console.WriteLine("Failed!");
+                    Console.WriteLine(ex.Message);
+                    Environment.Exit(ERRORLEVEL_FAILURE);
                 }
             }
+        }
+
+        private static void DirectoryCopy(string sourcePath, string targetPath) {
+            var sourceDirectory = new DirectoryInfo(sourcePath);
+            if (!sourceDirectory.Exists) throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourcePath);
+
+            // Copy files
+            Directory.CreateDirectory(targetPath);
+            foreach (var f in sourceDirectory.GetFiles()) {
+                f.CopyTo(Path.Combine(targetPath, f.Name), overwrite: true);
+            }
+
+            // Copy directories
+            foreach (var d in sourceDirectory.GetDirectories()) {
+                DirectoryCopy(d.FullName, Path.Combine(targetPath, d.Name));
+            }
+
         }
 
     }

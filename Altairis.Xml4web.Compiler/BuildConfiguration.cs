@@ -18,7 +18,15 @@ namespace Altairis.Xml4web.Compiler {
             return JsonConvert.DeserializeObject<BuildConfiguration>(json);
         }
 
-        public string FolderName { get; set; }
+        public string SourceFolder { get; set; }
+
+        public string TargetFolder { get; set; }
+
+        public string StaticFolder { get; set; }
+
+        public string XsltFolder { get; set; }
+
+        public string WorkFolder { get; set; }
 
         public Dictionary<string, string> Transforms { get; set; }
 
