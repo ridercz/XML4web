@@ -21,6 +21,10 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
 
         public bool ImportPictures { get; set; }
 
+        public string ImportPicturesPath { get; set; }
+
+        public string ImportPicturesUrl { get; set; }
+
         public bool ImportExternal { get; set; }
 
         public bool ImportPublished { get; set; }

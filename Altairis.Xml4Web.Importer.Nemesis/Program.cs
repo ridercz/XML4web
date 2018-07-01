@@ -126,17 +126,34 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             if (!(row["DateUpdated"] is DBNull)) sb.AppendMetadataLine("dcterms:dateSubmitted", XmlConvert.ToString((DateTime)row["DateUpdated"], XmlDateTimeSerializationMode.Local));
             if (!(row["DatePublished"] is DBNull)) sb.AppendMetadataLine("dcterms:dateAccepted", XmlConvert.ToString((DateTime)row["DatePublished"], XmlDateTimeSerializationMode.Local));
             sb.AppendMetadataLine("x4w:alternateUrl", row["AlternateUrl"]);
+            Console.WriteLine("OK");
+
             if (config.ImportPictures) {
                 var pictureType = row["PictureContentType"].ToString();
                 if (!string.IsNullOrWhiteSpace(pictureType)) {
                     var pictureData = row["PictureData"] as byte[];
-                    var dataUri = $"data:{pictureType};base64,{Convert.ToBase64String(pictureData)}";
-                    sb.AppendMetadataLine("x4w:pictureUri", dataUri);
                     sb.AppendMetadataLine("x4w:pictureWidth", row["PictureWidth"]);
                     sb.AppendMetadataLine("x4w:pictureHeight", row["PictureHeight"]);
+
+                    if (string.IsNullOrEmpty(config.ImportPicturesPath) || string.IsNullOrEmpty(config.ImportPicturesUrl)) {
+                        // Embed in metadata
+                        var dataUri = $"data:{pictureType};base64,{Convert.ToBase64String(pictureData)}";
+                        sb.AppendMetadataLine("x4w:pictureUrl", dataUri);
+                        Console.WriteLine("  Embedding picture...OK");
+                    }
+                    else {
+                        // Save to path
+                        var pictureFileName = AddExtensionFromType(FormatDataString(config.ImportPicturesPath, row), pictureType);
+                        var pictureUrl = AddExtensionFromType(FormatDataString(config.ImportPicturesUrl, row), pictureType);
+
+                        Console.Write($"  Saving picture...");
+                        Directory.CreateDirectory(Path.GetDirectoryName(pictureFileName));
+                        File.WriteAllBytes(pictureFileName, pictureData);
+                        sb.AppendMetadataLine("x4w:pictureUrl", pictureUrl);
+                        Console.WriteLine("OK");
+                    }
                 }
             }
-            Console.WriteLine("OK");
 
             // Add body
             sb.AppendLine();
@@ -162,6 +179,28 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             Console.WriteLine("OK");
 
             return newId;
+        }
+
+        private static string AddExtensionFromType(string s, string contentType) {
+            if (s == null) throw new ArgumentNullException(nameof(s));
+            if (string.IsNullOrWhiteSpace(s)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(s));
+            if (contentType == null) throw new ArgumentNullException(nameof(contentType));
+            if (string.IsNullOrWhiteSpace(contentType)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(contentType));
+
+            if (!s.EndsWith(".*", StringComparison.Ordinal)) return s;
+            s = s.Substring(0, s.Length - 1);
+
+            if (contentType.EndsWith("jpeg", StringComparison.OrdinalIgnoreCase) || contentType.EndsWith("jpg", StringComparison.OrdinalIgnoreCase)) {
+                s += "jpg";
+            }
+            else if (contentType.EndsWith("png", StringComparison.OrdinalIgnoreCase)) {
+                s += "png";
+            }
+            else {
+                s += "bin";
+            }
+
+            return s;
         }
 
         private static string FormatDataString(string s, DataRow row) {

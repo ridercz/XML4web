@@ -2,6 +2,8 @@
   "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=RiderWeblog",
   "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairblog\\source",
   "ImportPictures": true,
+  "ImportPicturesPath": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairblog\\static\\perex-pictures\\$(DatePublished:yyyyMMdd)-$(Title).*",
+  "ImportPicturesUrl": "/perex-pictures/$(DatePublished:yyyyMMdd)-$(Title).*",
   "ImportExternal": false,
   "ImportPublished": true,
   "ImportUnpublished": false,
