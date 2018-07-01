@@ -68,7 +68,8 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 var newId = ProcessArticle(row);
                 if (string.IsNullOrEmpty(newId)) {
                     skippedCount++;
-                }else {
+                }
+                else {
                     importedCount++;
                     idMapSb.AppendLine(string.Join('\t', row["ArticleId"], newId));
                 }
@@ -106,8 +107,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             // Create destination folder
             var newId = FormatDataString(config.FileNameFormat, row);
             Console.WriteLine($"  New ID: {newId}");
-            var folderName = Path.Combine(config.FolderName, newId);
-            Directory.CreateDirectory(folderName);
+            var fileName = Path.Combine(config.FolderName, newId + ".md");
 
             // Create main file and add metadata
             Console.Write("  Constructing metadata...");
@@ -126,33 +126,23 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             if (!(row["DateUpdated"] is DBNull)) sb.AppendMetadataLine("dcterms:dateSubmitted", XmlConvert.ToString((DateTime)row["DateUpdated"], XmlDateTimeSerializationMode.Local));
             if (!(row["DatePublished"] is DBNull)) sb.AppendMetadataLine("dcterms:dateAccepted", XmlConvert.ToString((DateTime)row["DatePublished"], XmlDateTimeSerializationMode.Local));
             sb.AppendMetadataLine("x4w:alternateUrl", row["AlternateUrl"]);
-            Console.WriteLine("OK");
-
-            // Create image
-            var pictureType = row["PictureContentType"].ToString();
-            if (!string.IsNullOrWhiteSpace(pictureType)) {
-                Console.Write("  Saving picture...");
-                var pictureData = row["PictureData"] as byte[];
-                var pictureName = "picture.";
-                if (pictureType.EndsWith("jpeg", StringComparison.OrdinalIgnoreCase)) {
-                    pictureName += "jpg";
+            if (config.ImportPictures) {
+                var pictureType = row["PictureContentType"].ToString();
+                if (!string.IsNullOrWhiteSpace(pictureType)) {
+                    var pictureData = row["PictureData"] as byte[];
+                    var dataUri = $"data:{pictureType};base64,{Convert.ToBase64String(pictureData)}";
+                    sb.AppendMetadataLine("x4w:pictureUri", dataUri);
+                    sb.AppendMetadataLine("x4w:pictureWidth", row["PictureWidth"]);
+                    sb.AppendMetadataLine("x4w:pictureHeight", row["PictureHeight"]);
                 }
-                else {
-                    pictureName += pictureType.Substring(pictureType.LastIndexOf('/') + 1);
-                }
-
-                File.WriteAllBytes(Path.Combine(folderName, pictureName), pictureData);
-                sb.AppendMetadataLine("x4w:picture", pictureName);
-                sb.AppendMetadataLine("x4w:pictureWidth", row["PictureWidth"]);
-                sb.AppendMetadataLine("x4w:pictureHeight", row["PictureHeight"]);
-                Console.WriteLine(pictureName);
             }
+            Console.WriteLine("OK");
 
             // Add body
             sb.AppendLine();
             var html = row["Body"].ToString();
             if (config.ConvertHtmlToMarkdown) {
-                Console.Write("Converting to Markdown...");
+                Console.Write("  Converting to Markdown...");
                 try {
                     var mdc = new Html2Markdown.Converter();
                     var md = mdc.Convert(html.ToSingleLine());
@@ -166,8 +156,9 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             else {
                 sb.Append(html);
             }
-            Console.Write("  Saving main file...");
-            File.WriteAllText(Path.Combine(folderName, "index.md"), sb.ToString());
+            Console.Write("  Saving file...");
+            Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+            File.WriteAllText(fileName, sb.ToString());
             Console.WriteLine("OK");
 
             return newId;
