@@ -6,9 +6,11 @@
   "WorkFolder": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairblog\\work",
   "Transforms": {
     "HomePage.xslt": "index.html",
-    "Archive.xslt": null
+    "Archive.xslt": null,
+    "Articles.xslt": null
   },
   "TransformParameters": {
-    "PageSize":  10
-  }
+    "PageSize": 10
+  },
+  "PrependDoctype": "<!DOCTYPE html>"
 }

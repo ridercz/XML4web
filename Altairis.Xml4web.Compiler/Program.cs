@@ -50,18 +50,12 @@ namespace Altairis.Xml4web.Compiler {
             // Run transforms
             foreach (var transform in _config.Transforms) {
                 var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
-                if (!string.IsNullOrEmpty(transform.Value)) {
-                    // Simple transform
-                    var outputFileName = Path.Combine(_config.TargetFolder, transform.Value);
-                    RunTransform(metadataDocument, templateFileName, outputFileName);
-                }
-                else {
-                    // Multi-document transform
-                    var outputFileName = Path.Combine(_config.TargetFolder, Guid.NewGuid().ToString() + ".xml");
-                    RunTransform(metadataDocument, templateFileName, outputFileName);
-                    SplitFile(outputFileName, templateFileName + ".log");
-                    File.Delete(outputFileName);
-                }
+                var outputFileName = Path.Combine(_config.WorkFolder, Path.GetFileNameWithoutExtension(transform.Key) + ".xml");
+
+                RunTransform(metadataDocument, templateFileName, outputFileName);
+
+                var proc = new XmlOutputProcessor(outputFileName, _config.TargetFolder, _config.PrependDoctype);
+                proc.SaveAllFiles(transform.Value);
             }
 
             // Check if there are some errors
@@ -73,31 +67,6 @@ namespace Altairis.Xml4web.Compiler {
             else {
                 Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
                 Console.WriteLine(logFiles.Select(s => "  " + s + Environment.NewLine));
-            }
-        }
-
-        private static void SplitFile(string inputFileName, string errorLogFile) {
-            Console.WriteLine("Splitting file:");
-            var multiDoc = new HtmlDocument();
-            multiDoc.Load(inputFileName);
-            multiDoc.OptionOutputAsXml = true;
-            multiDoc.OptionAutoCloseOnEnd = true;
-            var documentNodes = multiDoc.DocumentNode.SelectNodes("/*/document");
-            foreach (var item in documentNodes) {
-                var href = item.GetAttributeValue("href", null).Trim('/', '\\');
-                if (string.IsNullOrWhiteSpace(href)) continue;
-                try {
-                    Console.Write($"  {href}...");
-                    var fileName = Path.Combine(_config.TargetFolder, href);
-                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-                    File.WriteAllText(fileName, item.InnerHtml);
-                    Console.WriteLine("OK");
-                }
-                catch (Exception ex) {
-                    Console.WriteLine("Failed!");
-                    Console.WriteLine(ex.Message);
-                    File.AppendAllText(errorLogFile, $"\r\n{href}\r\n{ex}");
-                }
             }
         }
 
