@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using Markdig;
@@ -41,6 +42,26 @@ namespace Altairis.Xml4web.Compiler {
             }
             var html = Markdown.ToHtml(mdSb.ToString(), pipeline);
             return html;
+        }
+
+        public string UrlKey(string s) {
+            if (string.IsNullOrEmpty(s)) return "null";
+            s = RemoveDiacritics(s).ToLower();
+            s = Regex.Replace(s, "[^a-z0-9]", "-");
+            s = s.Trim('-');
+            while (s.Contains("--")) s = s.Replace("--", "-");
+            if (string.IsNullOrWhiteSpace(s)) s = "null";
+            return s;
+        }
+
+        public string RemoveDiacritics(string s) {
+            s = s.Normalize(NormalizationForm.FormD);
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < s.Length; i++) {
+                if (CharUnicodeInfo.GetUnicodeCategory(s[i]) != UnicodeCategory.NonSpacingMark) sb.Append(s[i]);
+            }
+            return sb.ToString().Normalize(NormalizationForm.FormC);
         }
 
     }

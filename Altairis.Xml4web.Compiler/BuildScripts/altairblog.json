@@ -7,7 +7,9 @@
   "Transforms": {
     "HomePage.xslt": "index.html",
     "Archive.xslt": null,
-    "Articles.xslt": null
+    "Articles.xslt": null,
+    "Categories.xslt": null,
+    "Serials.xslt": null
   },
   "TransformParameters": {
     "PageSize": 10
