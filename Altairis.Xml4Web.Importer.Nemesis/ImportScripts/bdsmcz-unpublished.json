@@ -7,5 +7,6 @@
   "ImportUnpublished": true,
   "FileNameFormat": "articles/$(ArticleId)-$(Title)",
   "IdentifierFormat": "$(ArticleId)-$(Title)",
-  "ConvertHtmlToMarkdown": true
+  "ConvertHtmlToMarkdown": true,
+  "LinkListFileName": "linklist.tsv"
 }
