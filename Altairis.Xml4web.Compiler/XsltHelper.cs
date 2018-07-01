@@ -29,13 +29,8 @@ namespace Altairis.Xml4web.Compiler {
             return dt.ToString(formatString, ci);
         }
 
-        public string ImportText(string fileName) {
-            var fullFileName = Path.Combine(_config.SourceFolder, fileName.Trim('/', '\\'));
-            return File.ReadAllText(fullFileName);
-        }
-
-        public string ImportMarkdown(string fileName) {
-            var fullFileName = Path.Combine(_config.SourceFolder, fileName.Trim('/', '\\'));
+        public string GetItemHtml(string path) {
+            var fullFileName = Path.Combine(_config.SourceFolder, path.Trim('/', '\\') + ".md");
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
             var mdLines = File.ReadAllLines(fullFileName);
             var mdSb = new StringBuilder();
@@ -46,19 +41,6 @@ namespace Altairis.Xml4web.Compiler {
             }
             var html = Markdown.ToHtml(mdSb.ToString(), pipeline);
             return html;
-        }
-
-        public string CopyAttachments(string sourceFolder, string targetFolder) {
-            var fullSourceFolder = Path.Combine(_config.SourceFolder, sourceFolder.Trim('/', '\\'));
-            var fullTargetFolder = Path.Combine(_config.TargetFolder, targetFolder.Trim('/', '\\'));
-
-            foreach (var file in Directory.GetFiles(fullSourceFolder)) {
-                var fileNameOnly = Path.GetFileName(file);
-                if (fileNameOnly.Equals("index.md", StringComparison.OrdinalIgnoreCase)) continue;
-                Directory.CreateDirectory(fullTargetFolder);
-                File.Copy(file, Path.Combine(fullTargetFolder, fileNameOnly), overwrite: true);
-            }
-            return string.Empty;
         }
 
     }
