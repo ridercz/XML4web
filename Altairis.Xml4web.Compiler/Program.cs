@@ -152,8 +152,9 @@ namespace Altairis.Xml4web.Compiler {
             }
             catch (Exception ex) {
                 Console.WriteLine("Failed!");
-                Console.WriteLine($"For details see {templateFileName}.log");
-                File.WriteAllText(templateFileName + ".log", ex.ToString());
+                var errorLogName = Path.Combine(_config.WorkFolder, Path.GetFileName(templateFileName) + ".log");
+                Console.WriteLine($"For details see {errorLogName}");
+                File.WriteAllText(errorLogName, ex.ToString());
             }
         }
 
