@@ -35,7 +35,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
 
         public string IdMapFileName { get; set; }
 
-        public Dictionary<string, string> SiteMetadata { get; set; }
+        public Dictionary<string, string> SiteMetadata { get; set; } = new Dictionary<string, string>();
 
     }
 }

@@ -28,9 +28,9 @@ namespace Altairis.Xml4web.Compiler {
 
         public string WorkFolder { get; set; }
 
-        public Dictionary<string, string> Transforms { get; set; }
+        public Dictionary<string, string> Transforms { get; set; } = new Dictionary<string, string>();
 
-        public Dictionary<string, string> TransformParameters { get; set; }
+        public Dictionary<string, string> TransformParameters { get; set; } = new Dictionary<string, string>();
 
     }
 }
