@@ -1,6 +1,6 @@
 {
   "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=AspNet2010",
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairone\\src",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairblog\\source",
   "ImportPictures": true,
   "ImportExternal": false,
   "ImportPublished": true,
