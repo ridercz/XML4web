@@ -19,7 +19,7 @@ namespace Altairis.Xml4web.Compiler {
         public static SiteMetadataDocument CreateFromFolder(string sourceFolderName) {
             var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "namespaces.txt"));
             doc.SourceFolderName = sourceFolderName.TrimEnd('\\');
-            doc.AddPageMetadata(doc.SourceFolderName, doc.DocumentElement);
+            doc.ScanFolder(doc.SourceFolderName, doc.DocumentElement);
             return doc;
         }
 
@@ -53,15 +53,42 @@ namespace Altairis.Xml4web.Compiler {
             this.Errors = new List<KeyValuePair<string, string>>();
         }
 
-        private void AddPageMetadata(string folderName, XmlElement parentElement) {
+        private void ScanFolder(string folderName, XmlElement parentElement) {
             // Create item node
             folderName = folderName.TrimEnd('\\');
-            var pathId = folderName.Substring(this.SourceFolderName.Length).Replace('\\', '/') + "/";
-            var itemElement = this.CreateElement("item");
-            itemElement.SetAttribute("path", pathId);
+            var pathId = folderName.Substring(this.SourceFolderName.Length).Replace('\\', '/');
+            var folderElement = this.CreateElement("folder");
+            folderElement.SetAttribute("path", string.IsNullOrEmpty(pathId) ? "/" : pathId);
 
             // Import metadata from index page
-            var mdFileName = Path.Combine(folderName, "index.md");
+            var indexFileName = Path.Combine(folderName, "index.md");
+            if (File.Exists(indexFileName)) {
+                foreach (var item in GetMetadataElementsFromFile(indexFileName)) {
+                    folderElement.AppendChild(item);
+                }
+            }
+
+            // Import metadata from other pages
+            foreach (var fileName in Directory.GetFiles(folderName, "*.md")) {
+                var fileElement = this.CreateElement("file");
+                fileElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
+                foreach (var item in GetMetadataElementsFromFile(fileName)) {
+                    fileElement.AppendChild(item);
+                }
+                folderElement.AppendChild(fileElement);
+            }
+
+            // Add item node to document
+            parentElement.AppendChild(folderElement);
+
+            // Recurse folders
+            foreach (var item in Directory.GetDirectories(folderName)) {
+                ScanFolder(item, folderElement);
+            }
+
+        }
+
+        private IEnumerable<XmlElement> GetMetadataElementsFromFile(string mdFileName) {
             if (File.Exists(mdFileName)) {
                 foreach (var item in this.GetMetadataFromFile(mdFileName)) {
                     var separatorIndex = item.Key.IndexOf(':');
@@ -72,19 +99,10 @@ namespace Altairis.Xml4web.Compiler {
                         this.Errors.Add(new KeyValuePair<string, string>(mdFileName, $"Unknown prefix of metadata key \"{item.Key}\"."));
                     }
                     else {
-                        itemElement.AppendChild(this.CreateQualifiedElement(item.Key, item.Value));
+                        yield return this.CreateQualifiedElement(item.Key, item.Value);
                     }
                 }
             }
-
-            // Add item node to document
-            parentElement.AppendChild(itemElement);
-
-            // Recurse
-            foreach (var item in Directory.GetDirectories(folderName)) {
-                AddPageMetadata(item, itemElement);
-            }
-
         }
 
         // Helper methods
