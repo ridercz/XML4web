@@ -138,6 +138,9 @@ namespace Altairis.Xml4web.Compiler {
                 // Prepare transformation
                 var args = new XsltArgumentList();
                 args.AddExtensionObject(Namespaces.X4H, new XsltHelper(_config));
+                foreach (var item in _config.TransformParameters) {
+                    args.AddParam(item.Key, Namespaces.X4C, item.Value);
+                }
 
                 var tran = new XslCompiledTransform();
                 tran.Load(templateFileName, XsltSettings.TrustedXslt, new XmlUrlResolver());

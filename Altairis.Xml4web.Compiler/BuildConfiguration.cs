@@ -30,5 +30,7 @@ namespace Altairis.Xml4web.Compiler {
 
         public Dictionary<string, string> Transforms { get; set; }
 
+        public Dictionary<string, string> TransformParameters { get; set; }
+
     }
 }
