@@ -1,1 +1,0 @@
-@dotnet x4w-compiler.dll -- %*
