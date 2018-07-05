@@ -15,8 +15,27 @@ namespace Altairis.Xml4web.Compiler {
             Contract.Requires(string.IsNullOrEmpty(fileName) == false);
 
             var json = File.ReadAllText(fileName);
-            return JsonConvert.DeserializeObject<BuildConfiguration>(json);
+            var obj = JsonConvert.DeserializeObject<BuildConfiguration>(json);
+            obj.FileName = fileName;
+            obj.ExpandAllPaths();
+            return obj;
         }
+
+        private string ExpandPath(string s) {
+            if (Path.IsPathFullyQualified(s)) return s;
+            return Path.Combine(Path.GetDirectoryName(this.FileName), s.Trim('/', '\\'));
+        }
+
+        private void ExpandAllPaths() {
+            this.SourceFolder = this.ExpandPath(this.SourceFolder);
+            this.TargetFolder = this.ExpandPath(this.TargetFolder);
+            this.StaticFolder = this.ExpandPath(this.StaticFolder);
+            this.XsltFolder = this.ExpandPath(this.XsltFolder);
+            this.WorkFolder = this.ExpandPath(this.WorkFolder);
+        }
+
+
+        private string FileName { get; set; }
 
         public string SourceFolder { get; set; }
 
