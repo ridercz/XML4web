@@ -19,7 +19,6 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
         private static StringBuilder idMapSb = new StringBuilder();
         private static StringBuilder linkListSb = new StringBuilder();
 
-
         static void Main(string[] args) {
             Console.WriteLine("Altairis XML4web Importer from Nemesis Publishing");
             Console.WriteLine("Copyright (c) Michal A. Valášek - Altairis, 2018");
@@ -110,7 +109,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 return null;
             }
             var isExternal = !string.IsNullOrEmpty(row["AlternateUrl"].ToString());
-            if (config.ImportExternal && isExternal) {
+            if (!config.ImportExternal && isExternal) {
                 Console.WriteLine("  Skipping external article");
                 return null;
             }
