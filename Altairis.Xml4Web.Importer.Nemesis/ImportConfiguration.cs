@@ -43,5 +43,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
 
         public Dictionary<string, string> SiteMetadata { get; set; } = new Dictionary<string, string>();
 
+        public Dictionary<string, string> LinkReplacements { get; set; } = new Dictionary<string, string>();
+
     }
 }

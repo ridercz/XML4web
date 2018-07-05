@@ -16,6 +16,9 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
 
         private static ImportConfiguration config;
         private static DataTable articles;
+        private static StringBuilder idMapSb = new StringBuilder();
+        private static StringBuilder linkListSb = new StringBuilder();
+
 
         static void Main(string[] args) {
             Console.WriteLine("Altairis XML4web Importer from Nemesis Publishing");
@@ -67,7 +70,6 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             // Process all rows
             var importedCount = 0;
             var skippedCount = 0;
-            var idMapSb = new StringBuilder();
             foreach (DataRow row in articles.Rows) {
                 var newId = ProcessArticle(row);
                 if (string.IsNullOrEmpty(newId)) {
@@ -79,13 +81,18 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 }
             }
 
-            // Create ID map file
+            // Save ID map file
             if (!string.IsNullOrEmpty(config.IdMapFileName)) {
                 Console.Write("Saving idmap...");
                 File.WriteAllText(Path.Combine(config.FolderName, config.IdMapFileName), idMapSb.ToString());
                 Console.WriteLine("OK");
             }
-
+            // Save Link list file
+            if (!string.IsNullOrEmpty(config.IdMapFileName)) {
+                Console.Write("Saving link list...");
+                File.WriteAllText(Path.Combine(config.FolderName, config.LinkListFileName), linkListSb.ToString());
+                Console.WriteLine("OK");
+            }
             Console.WriteLine($"Import completed: {importedCount} articles imported, {skippedCount} skipped.");
         }
 
@@ -178,8 +185,8 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 sb.Append(html);
             }
 
-            // Analyze links if required
-            if (!string.IsNullOrEmpty(config.LinkListFileName)) AnalyzeLinks(newId, html);
+            // Analyze links
+            ProcessLinks(newId, html);
 
             // Save file
             Console.Write("  Saving file...");
@@ -190,14 +197,15 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             return newId;
         }
 
-        private static void AnalyzeLinks(string newId, string html) {
+        private static string ProcessLinks(string newId, string html) {
+            if (string.IsNullOrWhiteSpace(config.LinkListFileName) && !config.LinkReplacements.Any()) return html;
+
             Console.Write("  Analyzing links...");
 
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            var sb = new StringBuilder();
-            var counter = 0;
+            var foundCounter = 0;
 
             var aHrefNodes = doc.DocumentNode.SelectNodes("//a");
             if (aHrefNodes != null) {
@@ -206,8 +214,11 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                     if (string.IsNullOrWhiteSpace(val)) continue;
                     val = val.Replace("&amp;", "&");
 
-                    sb.AppendLine(string.Join('\t', newId, "a_href", val));
-                    counter++;
+                    var newVal = ReplaceLink(val);
+                    item.SetAttributeValue("href", newVal);
+
+                    linkListSb.AppendLine(string.Join('\t', newId, "a_href", val, newVal));
+                    foundCounter++;
                 }
             }
 
@@ -218,17 +229,29 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                     if (string.IsNullOrWhiteSpace(val)) continue;
                     val = val.Replace("&amp;", "&");
 
-                    sb.AppendLine(string.Join('\t', newId, "img_src", val));
-                    counter++;
+                    var newVal = ReplaceLink(val);
+                    item.SetAttributeValue("src", newVal);
+
+                    linkListSb.AppendLine(string.Join('\t', newId, "img_src", val, newVal));
+                    foundCounter++;
                 }
             }
 
-            if (counter > 0) {
+            if (!string.IsNullOrWhiteSpace(config.LinkListFileName) && foundCounter > 0) {
                 var fileName = Path.Combine(config.FolderName, config.LinkListFileName);
-                File.AppendAllText(fileName, sb.ToString());
+                File.AppendAllText(fileName, linkListSb.ToString());
             }
 
-            Console.WriteLine($"OK, found {counter} links");
+            Console.WriteLine($"OK, found {foundCounter} links");
+
+            return doc.Text;
+        }
+
+        private static string ReplaceLink(string url) {
+            foreach (var item in config.LinkReplacements) {
+                if (Regex.IsMatch(url, item.Key, RegexOptions.IgnoreCase)) return Regex.Replace(url, item.Key, item.Value, RegexOptions.IgnoreCase);
+            }
+            return url;
         }
 
         private static string AddExtensionFromType(string s, string contentType) {

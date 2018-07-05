@@ -1,8 +1,8 @@
 {
   "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=RiderWeblog",
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairblog\\source",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Blog\\source",
   "ImportPictures": true,
-  "ImportPicturesPath": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\altairblog\\static\\perex-pictures\\$(DatePublished:yyyyMMdd)-$(Title).*",
+  "ImportPicturesPath": "C:\\Users\\Altair\\Source\\Repos\\Blog\\static\\perex-pictures\\$(DatePublished:yyyyMMdd)-$(Title).*",
   "ImportPicturesUrl": "/perex-pictures/$(DatePublished:yyyyMMdd)-$(Title).*",
   "ImportExternal": false,
   "ImportPublished": true,
@@ -11,5 +11,12 @@
   "IdentifierFormat": "riderweblog#$(ArticleId)",
   "ConvertHtmlToMarkdown": true,
   "IdMapFileName": "id-map.riderweblog.tsv",
-  "LinkListFileName" : "linklist.riderweblog.tsv"
+  "LinkListFileName": "linklist.riderweblog.tsv",
+  "LinkReplacements": {
+    "^/files/(\\d{4})(.*)": "https://www.cdn.altairis.cz/Blog/${1}/${1}${2}",
+    "^/files/(.*)": "https://www.cdn.altairis.cz/Blog/${1}",
+    "^http://www\\.weblog\\.rider\\.cz/files/(\\d{4})(.*)": "https://www.cdn.altairis.cz/Blog/${1}/${1}${2}",
+    "^http://www\\.weblog\\.rider\\.cz/files/(.*)": "https://www.cdn.altairis.cz/Blog/${1}",
+    "^/Articles/(.*)": "https://www.weblog.rider.cz/Articles/${1}"
+  }
 }
