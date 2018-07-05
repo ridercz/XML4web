@@ -58,7 +58,7 @@ namespace Altairis.Xml4web.Compiler {
             }
 
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(_prependDoctype)) sb.AppendLine(_prependDoctype);
+            if (!string.IsNullOrEmpty(_prependDoctype) && doc.DocumentElement.LocalName.Equals("html", StringComparison.OrdinalIgnoreCase)) sb.AppendLine(_prependDoctype);
             var settings = new XmlWriterSettings {
                 Encoding = Encoding.UTF8,
                 Indent = true,

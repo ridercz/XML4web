@@ -47,7 +47,7 @@ namespace Altairis.Xml4web.Compiler {
 
         public string WorkFolder { get; set; }
 
-        public string PrependDoctype { get; set; }
+        public string PrependHtmlDoctype { get; set; }
 
         public Dictionary<string, string> Transforms { get; set; } = new Dictionary<string, string>();
 

@@ -54,7 +54,7 @@ namespace Altairis.Xml4web.Compiler {
 
                 RunTransform(metadataDocument, templateFileName, outputFileName);
 
-                var proc = new XmlOutputProcessor(outputFileName, _config.TargetFolder, _config.PrependDoctype);
+                var proc = new XmlOutputProcessor(outputFileName, _config.TargetFolder, _config.PrependHtmlDoctype);
                 proc.SaveAllFiles(transform.Value);
             }
 
