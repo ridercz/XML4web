@@ -51,6 +51,8 @@ namespace Altairis.Xml4web.Compiler {
 
         public Dictionary<string, string> Transforms { get; set; } = new Dictionary<string, string>();
 
+        public Dictionary<string, string> RawTransforms { get; set; } = new Dictionary<string, string>();
+
         public Dictionary<string, string> TransformParameters { get; set; } = new Dictionary<string, string>();
 
     }

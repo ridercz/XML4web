@@ -54,8 +54,18 @@ namespace Altairis.Xml4web.Compiler {
 
                 RunTransform(metadataDocument, templateFileName, outputFileName);
 
+                Console.Write("Running post-processor...");
                 var proc = new XmlOutputProcessor(outputFileName, _config.TargetFolder, _config.PrependHtmlDoctype);
                 proc.SaveAllFiles(transform.Value);
+                Console.WriteLine("OK");
+            }
+
+            // Run raw transforms
+            foreach (var transform in _config.RawTransforms) {
+                var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
+                var outputFileName = Path.Combine(_config.TargetFolder, transform.Value);
+
+                RunTransform(metadataDocument, templateFileName, outputFileName);
             }
 
             // Check if there are some errors
@@ -66,7 +76,7 @@ namespace Altairis.Xml4web.Compiler {
             }
             else {
                 Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
-                Console.WriteLine(logFiles.Select(s => "  " + s + Environment.NewLine));
+                Console.WriteLine(string.Join(Environment.NewLine, logFiles));
             }
         }
 
