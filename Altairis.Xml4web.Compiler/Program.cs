@@ -48,19 +48,21 @@ namespace Altairis.Xml4web.Compiler {
             metadataDocument.Save(metadataFileName);
 
             // Run transforms
-            foreach (var transform in _config.Transforms) {
+            Console.WriteLine("Running HTML transformations:");
+            foreach (var transform in _config.HtmlTransforms) {
                 var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
                 var outputFileName = Path.Combine(_config.WorkFolder, Path.GetFileNameWithoutExtension(transform.Key) + ".xml");
 
                 RunTransform(metadataDocument, templateFileName, outputFileName);
 
-                Console.Write("Running post-processor...");
+                Console.Write("  Running post-processor...");
                 var proc = new XmlOutputProcessor(outputFileName, _config.TargetFolder, _config.PrependHtmlDoctype);
                 proc.SaveAllFiles(transform.Value);
                 Console.WriteLine("OK");
             }
 
             // Run raw transforms
+            Console.WriteLine("Running raw transformations:");
             foreach (var transform in _config.RawTransforms) {
                 var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
                 var outputFileName = Path.Combine(_config.TargetFolder, transform.Value);
@@ -106,7 +108,7 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         private static void RunTransform(IXPathNavigable metadataDocument, string templateFileName, string outputFileName) {
-            Console.Write($"Running transformation {Path.GetFileName(templateFileName)}...");
+            Console.Write($"  Running {Path.GetFileName(templateFileName)}...");
             try {
                 var sw = new Stopwatch();
                 sw.Start();

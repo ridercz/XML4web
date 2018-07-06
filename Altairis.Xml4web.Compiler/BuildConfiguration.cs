@@ -49,7 +49,7 @@ namespace Altairis.Xml4web.Compiler {
 
         public string PrependHtmlDoctype { get; set; }
 
-        public Dictionary<string, string> Transforms { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> HtmlTransforms { get; set; } = new Dictionary<string, string>();
 
         public Dictionary<string, string> RawTransforms { get; set; } = new Dictionary<string, string>();
 
