@@ -165,9 +165,12 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 }
             }
 
+            // Analyze links
+            var html = row["Body"].ToString();
+            html = ProcessLinks(newId, html);
+
             // Add body
             sb.AppendLine();
-            var html = row["Body"].ToString();
             if (config.ConvertHtmlToMarkdown) {
                 Console.Write("  Converting to Markdown...");
                 try {
@@ -183,9 +186,6 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             else {
                 sb.Append(html);
             }
-
-            // Analyze links
-            ProcessLinks(newId, html);
 
             // Save file
             Console.Write("  Saving file...");
@@ -243,7 +243,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
 
             Console.WriteLine($"OK, found {foundCounter} links");
 
-            return doc.Text;
+            return doc.DocumentNode.InnerHtml;
         }
 
         private static string ReplaceLink(string url) {
