@@ -40,7 +40,7 @@ namespace Altairis.Xml4web.Compiler {
             // Add namespaces from file
             var lines = File.ReadAllLines(namespaceFile);
             foreach (var line in lines) {
-                var data = line.Split(':', 2);
+                var data = line.Split(new char[] { ':' }, 2);
                 if (data.Length != 2) continue;
                 _nsmgr.AddNamespace(data[0], data[1]);
                 this.DocumentElement.SetAttribute("xmlns:" + data[0], data[1]);
@@ -116,7 +116,7 @@ namespace Altairis.Xml4web.Compiler {
                     if (line.Length < 7) continue;
                     if (!line.StartsWith("<!--", StringComparison.Ordinal) || !line.EndsWith("-->", StringComparison.Ordinal)) continue;
                     line = line.Substring(4, line.Length - 7).Trim(); // remove comment marks and trim whitespace
-                    var lineData = line.Split('=', 2);
+                    var lineData = line.Split(new char[] { '=' }, 2);
                     if (lineData.Length != 2) break; // not "name = value" comment
                     yield return new KeyValuePair<string, string>(lineData[0].Trim(), lineData[1].Trim());
                     metadataRead = true;

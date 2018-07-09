@@ -109,7 +109,7 @@ namespace Altairis.Xml4web.Compiler {
 
             if (doc.Errors.Any()) {
                 Console.WriteLine($"Done in {sw.ElapsedMilliseconds} ms with {doc.Errors.Count()} errors, see metadata.xml.log for details.");
-                File.WriteAllLines(Path.Combine(_config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join('\t', x.Key, x.Value)));
+                File.WriteAllLines(Path.Combine(_config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join("\t", x.Key, x.Value)));
             }
             else {
                 Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");

@@ -22,7 +22,7 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         private string ExpandPath(string s) {
-            if (Path.IsPathFullyQualified(s)) return s;
+            if (Path.IsPathRooted(s)) return s;
             return Path.Combine(Path.GetDirectoryName(this.FileName), s.Trim('/', '\\'));
         }
 
