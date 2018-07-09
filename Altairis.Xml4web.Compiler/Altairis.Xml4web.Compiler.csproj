@@ -4,6 +4,15 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp2.1;net47</TargetFrameworks>
     <AssemblyName>x4w-compiler</AssemblyName>
+    <Version>$([System.DateTime]::UtcNow.ToString('yyyy.MM.dd.HHmm'))</Version>
+    <PackageId>Altairis.Xml4web.Compiler</PackageId>
+    <Authors>Michal A. Valášek</Authors>
+    <Company>Altairis, s. r. o.</Company>
+    <Product>XML4web</Product>
+    <Description>XML4web static site generator</Description>
+    <PackageProjectUrl>https://www.xml4web.com/</PackageProjectUrl>
+    <Copyright>Copyright © Michal A. Valášek - Altairis, s. r. o.</Copyright>
+    <PackageLicenseUrl>https://github.com/ridercz/XML4web/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
