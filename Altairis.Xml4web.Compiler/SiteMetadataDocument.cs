@@ -106,6 +106,7 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         // Helper methods
+
         private IEnumerable<KeyValuePair<string, string>> GetMetadataFromFile(string fileName) {
             var metadataRead = false;
             using (var sr = File.OpenText(fileName)) {

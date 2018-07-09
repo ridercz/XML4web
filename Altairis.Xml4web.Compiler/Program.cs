@@ -9,12 +9,8 @@ using HtmlAgilityPack;
 
 namespace Altairis.Xml4web.Compiler {
     class Program {
-        private const int ERRORLEVEL_SUCCESS = 0;
-        private const int ERRORLEVEL_FAILURE = 1;
-        private const int ERRORLEVEL_WARNING = 2;
-
-        private const int FS_RETRY_COUNT = 10;
-        private const int FS_RETRY_PAUSE = 1;
+        public const int ERRORLEVEL_SUCCESS = 0;
+        public const int ERRORLEVEL_FAILURE = 1;
 
         private static BuildConfiguration _config;
 
@@ -23,6 +19,37 @@ namespace Altairis.Xml4web.Compiler {
             Console.WriteLine("Copyright (c) Michal A. Valášek - Altairis, 2018");
             Console.WriteLine();
 
+            var tsw = new Stopwatch();
+            tsw.Start();
+
+            LoadConfiguration(args);
+
+            // Delete and copy needed files
+            PrepareFileSystem();
+
+            // Create site metadata document
+            var metadataFileName = Path.Combine(_config.WorkFolder, "metadata.xml");
+            var metadataDocument = CreateMetadataDocument();
+            metadataDocument.Save(metadataFileName);
+
+            // Run transforms
+            RunAllTransforms(metadataDocument);
+
+            // Check if there are some errors
+            tsw.Stop();
+            var logFiles = Directory.GetFiles(_config.WorkFolder, "*.log");
+            if (!logFiles.Any()) {
+                Console.WriteLine($"Build completed successfully in {tsw.ElapsedMilliseconds} ms.");
+                Environment.Exit(ERRORLEVEL_SUCCESS);
+            }
+            else {
+                Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
+                Console.WriteLine(string.Join(Environment.NewLine, logFiles));
+                Environment.Exit(ERRORLEVEL_FAILURE);
+            }
+        }
+
+        private static void LoadConfiguration(string[] args) {
             // Validate/load arguments
             if (args.Length != 2) {
                 Console.WriteLine("USAGE: x4w-compiler buildscript.json");
@@ -34,9 +61,6 @@ namespace Altairis.Xml4web.Compiler {
                 Console.WriteLine($"ERROR: File '{buildScriptFileName}' was not found!");
                 Environment.Exit(ERRORLEVEL_FAILURE);
             }
-            var tsw = new Stopwatch();
-            tsw.Start();
-
 
             // Load configuration
             Console.Write("Loading configuration...");
@@ -49,16 +73,51 @@ namespace Altairis.Xml4web.Compiler {
                 Console.WriteLine(ex.Message);
                 Environment.Exit(ERRORLEVEL_FAILURE);
             }
+        }
 
-            // Delete and copy needed files
-            PrepareFileSystem();
+        private static void PrepareFileSystem() {
+            // Delete target and work folder
+            FileSystemHelper.DirectoryDelete(_config.TargetFolder);
+            Directory.CreateDirectory(_config.TargetFolder);
+            FileSystemHelper.DirectoryDelete(_config.WorkFolder);
+            Directory.CreateDirectory(_config.WorkFolder);
 
-            // Create site metadata document
-            var metadataFileName = Path.Combine(_config.WorkFolder, "metadata.xml");
-            var metadataDocument = CreateMetadataDocument();
-            metadataDocument.Save(metadataFileName);
+            // Copy static data to output folder
+            if (Directory.Exists(_config.StaticFolder)) {
+                Console.Write($"Copying {_config.StaticFolder} to {_config.TargetFolder}...");
+                try {
+                    var sw = new Stopwatch();
+                    sw.Start();
+                    FileSystemHelper.DirectoryCopy(_config.StaticFolder, _config.TargetFolder);
+                    sw.Stop();
+                    Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
+                }
+                catch (Exception ex) {
+                    Console.WriteLine("Failed!");
+                    Console.WriteLine(ex.Message);
+                    Environment.Exit(ERRORLEVEL_FAILURE);
+                }
+            }
+        }
 
-            // Run transforms
+        private static SiteMetadataDocument CreateMetadataDocument() {
+            Console.Write("Creating metadata document...");
+            var sw = new Stopwatch();
+            sw.Start();
+            var doc = SiteMetadataDocument.CreateFromFolder(_config.SourceFolder);
+            sw.Stop();
+
+            if (doc.Errors.Any()) {
+                Console.WriteLine($"Done in {sw.ElapsedMilliseconds} ms with {doc.Errors.Count()} errors, see metadata.xml.log for details.");
+                File.WriteAllLines(Path.Combine(_config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join('\t', x.Key, x.Value)));
+            }
+            else {
+                Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
+            }
+            return doc;
+        }
+
+        private static void RunAllTransforms(SiteMetadataDocument metadataDocument) {
             Console.WriteLine("Running HTML transformations:");
             foreach (var transform in _config.HtmlTransforms) {
                 var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
@@ -79,44 +138,6 @@ namespace Altairis.Xml4web.Compiler {
                 var outputFileName = Path.Combine(_config.TargetFolder, transform.Value);
 
                 RunTransform(metadataDocument, templateFileName, outputFileName);
-            }
-
-            // Check if there are some errors
-            tsw.Stop();
-            var logFiles = Directory.GetFiles(_config.WorkFolder, "*.log");
-            if (!logFiles.Any()) {
-                Console.WriteLine($"Build completed successfully in {tsw.ElapsedMilliseconds} ms.");
-                Environment.Exit(ERRORLEVEL_SUCCESS);
-            }
-            else {
-                Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
-                Console.WriteLine(string.Join(Environment.NewLine, logFiles));
-                Environment.Exit(ERRORLEVEL_WARNING);
-            }
-        }
-
-        private static void PrepareFileSystem() {
-            // Delete target and work folder
-            DirectoryDelete(_config.TargetFolder);
-            Directory.CreateDirectory(_config.TargetFolder);
-            DirectoryDelete(_config.WorkFolder);
-            Directory.CreateDirectory(_config.WorkFolder);
-
-            // Copy static data to output folder
-            if (Directory.Exists(_config.StaticFolder)) {
-                Console.Write($"Copying {_config.StaticFolder} to {_config.TargetFolder}...");
-                try {
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    DirectoryCopy(_config.StaticFolder, _config.TargetFolder);
-                    sw.Stop();
-                    Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
-                }
-                catch (Exception ex) {
-                    Console.WriteLine("Failed!");
-                    Console.WriteLine(ex.Message);
-                    Environment.Exit(ERRORLEVEL_FAILURE);
-                }
             }
         }
 
@@ -153,69 +174,6 @@ namespace Altairis.Xml4web.Compiler {
                 Console.WriteLine($"For details see {errorLogName}");
                 File.WriteAllText(errorLogName, ex.ToString());
             }
-        }
-
-        private static SiteMetadataDocument CreateMetadataDocument() {
-            Console.Write("Creating metadata document...");
-            var sw = new Stopwatch();
-            sw.Start();
-            var doc = SiteMetadataDocument.CreateFromFolder(_config.SourceFolder);
-            sw.Stop();
-
-            if (doc.Errors.Any()) {
-                Console.WriteLine($"Done in {sw.ElapsedMilliseconds} ms with {doc.Errors.Count()} errors, see metadata.xml.log for details.");
-                File.WriteAllLines(Path.Combine(_config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join('\t', x.Key, x.Value)));
-            }
-            else {
-                Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
-            }
-            return doc;
-        }
-
-        private static void DirectoryDelete(string folderName) {
-            if (Directory.Exists(folderName)) {
-                Console.Write($"Deleting {folderName}...");
-
-                var sw = new Stopwatch();
-                sw.Start();
-
-                var remainingRetries = FS_RETRY_COUNT;
-                while (true) {
-                    try {
-                        Directory.Delete(folderName, recursive: true);
-                        break;
-                    }
-                    catch (IOException ex) {
-                        Console.WriteLine("Failed!");
-                        Console.WriteLine(ex.Message);
-
-                        remainingRetries--;
-                        if (remainingRetries == 0) Environment.Exit(ERRORLEVEL_FAILURE);
-
-                        Console.Write("Retrying...");
-                    }
-                }
-
-                sw.Stop();
-                Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
-            }
-        }
-
-        private static void DirectoryCopy(string sourcePath, string targetPath) {
-            var sourceDirectory = new DirectoryInfo(sourcePath);
-            if (!sourceDirectory.Exists) throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourcePath);
-
-            // Copy files
-            Directory.CreateDirectory(targetPath);
-            foreach (var f in sourceDirectory.GetFiles()) {
-                f.CopyTo(Path.Combine(targetPath, f.Name), overwrite: true);
-            }
-
-            // Copy directories
-            foreach (var d in sourceDirectory.GetDirectories()) {
-                DirectoryCopy(d.FullName, Path.Combine(targetPath, d.Name));
-            }
-
         }
 
     }
