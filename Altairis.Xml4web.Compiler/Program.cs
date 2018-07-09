@@ -11,6 +11,10 @@ namespace Altairis.Xml4web.Compiler {
     class Program {
         private const int ERRORLEVEL_SUCCESS = 0;
         private const int ERRORLEVEL_FAILURE = 1;
+        private const int ERRORLEVEL_WARNING = 2;
+
+        private const int FS_RETRY_COUNT = 10;
+        private const int FS_RETRY_PAUSE = 1;
 
         private static BuildConfiguration _config;
 
@@ -36,8 +40,15 @@ namespace Altairis.Xml4web.Compiler {
 
             // Load configuration
             Console.Write("Loading configuration...");
-            _config = BuildConfiguration.Load(buildScriptFileName);
-            Console.WriteLine("OK");
+            try {
+                _config = BuildConfiguration.Load(buildScriptFileName);
+                Console.WriteLine("OK");
+            }
+            catch (Exception ex) {
+                Console.WriteLine("Failed!");
+                Console.WriteLine(ex.Message);
+                Environment.Exit(ERRORLEVEL_FAILURE);
+            }
 
             // Delete and copy needed files
             PrepareFileSystem();
@@ -75,10 +86,12 @@ namespace Altairis.Xml4web.Compiler {
             var logFiles = Directory.GetFiles(_config.WorkFolder, "*.log");
             if (!logFiles.Any()) {
                 Console.WriteLine($"Build completed successfully in {tsw.ElapsedMilliseconds} ms.");
+                Environment.Exit(ERRORLEVEL_SUCCESS);
             }
             else {
                 Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
                 Console.WriteLine(string.Join(Environment.NewLine, logFiles));
+                Environment.Exit(ERRORLEVEL_WARNING);
             }
         }
 
@@ -162,18 +175,29 @@ namespace Altairis.Xml4web.Compiler {
         private static void DirectoryDelete(string folderName) {
             if (Directory.Exists(folderName)) {
                 Console.Write($"Deleting {folderName}...");
-                try {
-                    var sw = new Stopwatch();
-                    sw.Start();
-                    Directory.Delete(folderName, recursive: true);
-                    sw.Stop();
-                    Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
+
+                var sw = new Stopwatch();
+                sw.Start();
+
+                var remainingRetries = FS_RETRY_COUNT;
+                while (true) {
+                    try {
+                        Directory.Delete(folderName, recursive: true);
+                        break;
+                    }
+                    catch (IOException ex) {
+                        Console.WriteLine("Failed!");
+                        Console.WriteLine(ex.Message);
+
+                        remainingRetries--;
+                        if (remainingRetries == 0) Environment.Exit(ERRORLEVEL_FAILURE);
+
+                        Console.Write("Retrying...");
+                    }
                 }
-                catch (Exception ex) {
-                    Console.WriteLine("Failed!");
-                    Console.WriteLine(ex.Message);
-                    Environment.Exit(ERRORLEVEL_FAILURE);
-                }
+
+                sw.Stop();
+                Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
             }
         }
 
