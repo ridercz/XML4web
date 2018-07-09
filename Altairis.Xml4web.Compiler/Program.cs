@@ -15,8 +15,13 @@ namespace Altairis.Xml4web.Compiler {
         private static BuildConfiguration _config;
 
         static void Main(string[] args) {
-            Console.WriteLine("Altairis XML4web Site Compiler");
-            Console.WriteLine("Copyright (c) Michal A. Valášek - Altairis, 2018");
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            Console.WriteLine();
+            Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Static Site Generator");
+            Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}");
+            Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018");
+            Console.WriteLine($@" / \  |   | |       |  \ / \ /  |-'  |  |  Michal A. Valášek - Altairis");
+            Console.WriteLine($@"o   o o   o O---o   o   o   o   o-o  o-o   www.xml4web.com | www.rider.cz");
             Console.WriteLine();
 
             var tsw = new Stopwatch();
