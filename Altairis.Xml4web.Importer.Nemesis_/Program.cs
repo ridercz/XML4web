@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using HtmlAgilityPack;
 
-namespace Altairis.Xml4Web.Importer.Nemesis {
+namespace Altairis.Xml4web.Importer.Nemesis {
     class Program {
         private const int ERRORLEVEL_SUCCESS = 0;
         private const int ERRORLEVEL_FAILURE = 1;
@@ -23,7 +23,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
         private static Dictionary<string, string> perexPictureMap = new Dictionary<string, string>();
 
         static void Main(string[] args) {
-            Console.WriteLine("Altairis XML4web Importer from Nemesis Publishing");
+            Console.WriteLine("Altairis Xml4web Importer from Nemesis Publishing");
             Console.WriteLine("Copyright (c) Michal A. Valášek - Altairis, 2018");
             Console.WriteLine();
 

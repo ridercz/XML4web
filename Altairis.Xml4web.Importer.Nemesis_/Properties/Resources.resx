@@ -140,6 +140,6 @@ ORDER BY A.ArticleId</value>
     <value>dcterms:http://purl.org/dc/terms/
 dc:http://purl.org/dc/elements/1.1/
 np9:http://schemas.altairis.cz/Nemesis/Publishing/9/
-x4w:http://schemas.altairis.cz/XML4web/PageMetadata/</value>
+x4w:http://schemas.altairis.cz/Xml4web/PageMetadata/</value>
   </data>
 </root>

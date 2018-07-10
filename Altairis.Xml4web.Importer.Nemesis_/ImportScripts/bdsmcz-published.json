@@ -1,8 +1,8 @@
 {
   "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=BdsmMagazin",
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\src",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Xml4web\\Sites\\bdsmcz-published\\src",
   "ImportPictures": true,
-  "ImportPicturesPath": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsmcz-published\\static\\perex-pictures\\$(DatePublished:yyyyMMdd)-$(Title).*",
+  "ImportPicturesPath": "C:\\Users\\Altair\\Source\\Repos\\Xml4web\\Sites\\bdsmcz-published\\static\\perex-pictures\\$(DatePublished:yyyyMMdd)-$(Title).*",
   "ImportPicturesUrl": "/perex-pictures/$(DatePublished:yyyyMMdd)-$(Title).*",
   "ImportExternal": true,
   "ImportPublished": true,

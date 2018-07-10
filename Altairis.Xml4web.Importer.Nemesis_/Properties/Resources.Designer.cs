@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Altairis.Xml4Web.Importer.Nemesis.Properties {
+namespace Altairis.Xml4web.Importer.Nemesis.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis.Properties {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Altairis.Xml4Web.Importer.Nemesis.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Altairis.Xml4web.Importer.Nemesis.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -88,7 +88,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis.Properties {
         ///   Looks up a localized string similar to dcterms:http://purl.org/dc/terms/
         ///dc:http://purl.org/dc/elements/1.1/
         ///np9:http://schemas.altairis.cz/Nemesis/Publishing/9/
-        ///x4w:http://schemas.altairis.cz/XML4web/PageMetadata/.
+        ///x4w:http://schemas.altairis.cz/Xml4web/PageMetadata/.
         /// </summary>
         public static string Namespaces {
             get {

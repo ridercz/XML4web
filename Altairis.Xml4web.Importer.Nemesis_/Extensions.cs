@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Altairis.Xml4Web.Importer.Nemesis {
+namespace Altairis.Xml4web.Importer.Nemesis {
     public static class Extensions {
 
         public static string ToSingleLine(this string s) {

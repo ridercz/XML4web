@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Altairis.Xml4Web.Importer.Nemesis {
+namespace Altairis.Xml4web.Importer.Nemesis {
     class ImportConfiguration {
 
         public static ImportConfiguration Load(string fileName) {

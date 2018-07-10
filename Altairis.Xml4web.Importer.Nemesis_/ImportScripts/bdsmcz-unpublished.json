@@ -1,6 +1,6 @@
 {
   "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=BdsmMagazin",
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\XML4web\\Sites\\bdsm.cz-unpublished\\src",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Xml4web\\Sites\\bdsm.cz-unpublished\\src",
   "ImportPictures": true,
   "ImportExternal": true,
   "ImportPublished": false,
