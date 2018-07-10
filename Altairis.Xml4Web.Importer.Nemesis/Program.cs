@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -18,6 +19,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
         private static DataTable articles;
         private static StringBuilder idMapSb = new StringBuilder();
         private static StringBuilder linkListSb = new StringBuilder();
+        private static Dictionary<string, string> perexPictureMap = new Dictionary<string, string>();
 
         static void Main(string[] args) {
             Console.WriteLine("Altairis XML4web Importer from Nemesis Publishing");
@@ -155,12 +157,8 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                         // Save to path
                         var pictureFileName = AddExtensionFromType(FormatDataString(config.ImportPicturesPath, row), pictureType);
                         var pictureUrl = AddExtensionFromType(FormatDataString(config.ImportPicturesUrl, row), pictureType);
-
-                        Console.Write($"  Saving picture...");
-                        Directory.CreateDirectory(Path.GetDirectoryName(pictureFileName));
-                        File.WriteAllBytes(pictureFileName, pictureData);
+                        pictureUrl = SavePerexPictureAndGetUrl(pictureData, pictureFileName, pictureUrl);
                         sb.AppendMetadataLine("x4w:pictureUrl", pictureUrl);
-                        Console.WriteLine("OK");
                     }
                 }
             }
@@ -174,8 +172,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             if (config.ConvertHtmlToMarkdown) {
                 Console.Write("  Converting to Markdown...");
                 try {
-                    var mdc = new Html2Markdown.Converter();
-                    var md = mdc.Convert(html.ToSingleLine());
+                    var md = HtmlToMarkdown(html);
                     sb.Append(md);
                     Console.WriteLine("OK");
                 }
@@ -194,6 +191,48 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
             Console.WriteLine("OK");
 
             return newId;
+        }
+
+        private static string SavePerexPictureAndGetUrl(byte[] pictureData, string initialFileName, string initialUrl) {
+            Console.Write("  Saving picture: ");
+
+            // Compute SHA-1 hash of picture data
+            string hashKey;
+            using (var mac = System.Security.Cryptography.SHA1.Create()) {
+                hashKey = Convert.ToBase64String(mac.ComputeHash(pictureData));
+            }
+            Console.Write($"{hashKey}...");
+
+            // Look it up in the translate table
+            if (perexPictureMap.ContainsKey(hashKey)) {
+                // Found - return existing URL
+                Console.WriteLine("Skipped!");
+                return perexPictureMap[hashKey];
+            } else {
+                // Not found - save
+                Directory.CreateDirectory(Path.GetDirectoryName(initialFileName));
+                File.WriteAllBytes(initialFileName, pictureData);
+                perexPictureMap.Add(hashKey, initialUrl);
+                Console.WriteLine("OK");
+                return initialUrl;
+            }
+        }
+
+        private static string HtmlToMarkdown(string html) {
+            // Add spaces inside <pre> elements - bug in the Html2Markdown library
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            var preNodes = doc.DocumentNode.SelectNodes("//pre");
+            if (preNodes != null) {
+                foreach (var item in preNodes) {
+                    item.InnerHtml = Environment.NewLine + item.InnerHtml + Environment.NewLine;
+                }
+            }
+            html = doc.DocumentNode.InnerHtml;
+
+            var mdc = new Html2Markdown.Converter();
+            var md = mdc.Convert(html);
+            return md;
         }
 
         private static string ProcessLinks(string newId, string html) {
