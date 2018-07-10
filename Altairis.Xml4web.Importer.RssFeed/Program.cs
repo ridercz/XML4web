@@ -125,6 +125,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
                     continue;
                 }
                 metadataValue = System.Web.HttpUtility.HtmlDecode(metadataValue);
+                metadataValue = Regex.Replace(metadataValue, "<[^>]*>", string.Empty);
 
                 Console.WriteLine(metadataValue);
                 metadata.Add(metadataLocator.Key, metadataValue);
