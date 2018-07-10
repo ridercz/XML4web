@@ -48,15 +48,15 @@ namespace Altairis.Xml4web.Compiler {
             if (!sourceDirectory.Exists) throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourcePath);
 
             // Copy files
-            Directory.CreateDirectory(targetPath);
             foreach (var f in sourceDirectory.GetFiles()) {
                 var remainingRetries = FS_RETRY_COUNT;
                 while (true) {
                     try {
+                        Directory.CreateDirectory(targetPath);
                         f.CopyTo(Path.Combine(targetPath, f.Name), overwrite: true);
                         break;
                     }
-                    catch (IOException ex) {
+                    catch (Exception ex) {
                         Console.WriteLine("Failed!");
                         Console.WriteLine(ex.Message);
 
