@@ -1,0 +1,21 @@
+﻿{
+  "RssUrl": "https://www.bdsm.cz/authors/1-michal-altair-valasek/feed.rss",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Blog\\source-rss",
+  "ItemXPath": "//item",
+  "ImportMetadataFromXPath": {
+    "dcterms:title": "title",
+    "x4w:alternateUrl": "link",
+    "dcterms:abstract": "description"
+  },
+  "StaticMetadata": {
+    "dcterms:creator": "Michal Altair Valášek",
+    "x4w:pictureUrl": "/perex-pictures/logo-bdsmcz.png",
+    "x4w:pictureWidth": "150",
+    "x4w:pictureHeight": "150",
+    "x4w:category": "BDSM"
+  },
+  "DateXPath": "pubDate",
+  "DateLocale": "en-US",
+  "FileName": "$(dcterms:dateAccepted|yyyy)/$(dcterms:dateAccepted|MM)/$(dcterms:title).md"
+
+}
