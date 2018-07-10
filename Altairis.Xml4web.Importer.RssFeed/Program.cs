@@ -12,6 +12,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
         private const int ERRORLEVEL_FAILURE = 1;
 
         private static ImportConfiguration config;
+        private static XmlNamespaceManager nsmgr;
 
         static void Main(string[] args) {
             Console.WriteLine("Altairis XML4web Importer from RSS Feed");
@@ -53,8 +54,22 @@ namespace Altairis.Xml4web.Importer.RssFeed {
                 Environment.Exit(ERRORLEVEL_FAILURE);
             }
 
+            // Analyze namespaces
+            Console.WriteLine("Loading XML namespaces...");
+            nsmgr = new XmlNamespaceManager(doc.NameTable);
+            foreach (XmlAttribute attr in doc.DocumentElement.Attributes) {
+                if (attr.Name == "xmlns") {
+                    nsmgr.AddNamespace(string.Empty, attr.Value);
+                    Console.WriteLine($"  Default namespace = {attr.Value}");
+                }
+                else if (attr.Prefix == "xmlns") {
+                    nsmgr.AddNamespace(attr.LocalName, attr.Value);
+                    Console.WriteLine($"  {attr.LocalName} = {attr.Value}");
+                }
+            }
+
             // Select items
-            var items = doc.SelectNodes(config.ItemXPath);
+            var items = doc.SelectNodes(config.ItemXPath, nsmgr);
             Console.WriteLine($"Found {items.Count} items.");
 
             // Process all items
@@ -102,7 +117,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
             // Load metadata from XML
             foreach (var metadataLocator in config.ImportMetadataFromXPath) {
                 Console.Write($"    {metadataLocator.Key} = ");
-                var metadataNode = feedItem.SelectSingleNode(metadataLocator.Value);
+                var metadataNode = feedItem.SelectSingleNode(metadataLocator.Value, nsmgr);
                 var metadataValue = GetValueFromNode(metadataNode);
 
                 if (string.IsNullOrEmpty(metadataValue)) {

@@ -1,0 +1,21 @@
+﻿{
+  "RssUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UCRHf3xgfsnl3zoh1vN3qfbA",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Blog\\source-rss",
+  "ItemXPath": "//*[local-name() = 'entry']",
+  "ImportMetadataFromXPath": {
+    "dcterms:title": "*[local-name() = 'title']",
+    "x4w:alternateUrl": "*[local-name() = 'link']/@href",
+    "dcterms:abstract": "media:group/media:description"
+  },
+  "StaticMetadata": {
+    "dcterms:creator": "Michal Altair Valášek",
+    "x4w:pictureUrl": "/perex-pictures/logo-youtube.png",
+    "x4w:pictureWidth": "150",
+    "x4w:pictureHeight": "150",
+    "x4w:category": "YouTube"
+  },
+  "DateXPath": "*[local-name() = 'published']",
+  "DateLocale": "en-US",
+  "FileName": "$(dcterms:dateAccepted|yyyy)/$(dcterms:dateAccepted|MM)/$(dcterms:title).md"
+
+}
