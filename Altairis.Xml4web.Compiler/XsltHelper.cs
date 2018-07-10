@@ -30,6 +30,16 @@ namespace Altairis.Xml4web.Compiler {
             return dt.ToString(formatString, ci);
         }
 
+        public string CurrentDateTime() => XmlConvert.ToString(DateTime.Now, XmlDateTimeSerializationMode.RoundtripKind);
+
+        public string ComputeHash(string path) {
+            var fullFileName = Path.Combine(_config.StaticFolder, path.Trim('/', '\\'));
+            using (var sha = new System.Security.Cryptography.SHA1Managed()) {
+                var hash = sha.ComputeHash(File.ReadAllBytes(fullFileName));
+                return string.Join(string.Empty, hash.Select(x => x.ToString("X2")));
+            }
+        }
+
         public string GetItemHtml(string path) {
             var fullFileName = Path.Combine(_config.SourceFolder, path.Trim('/', '\\') + ".md");
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
