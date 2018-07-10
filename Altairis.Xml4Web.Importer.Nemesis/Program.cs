@@ -19,6 +19,7 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
         private static DataTable articles;
         private static StringBuilder idMapSb = new StringBuilder();
         private static StringBuilder linkListSb = new StringBuilder();
+        private static List<string> failedFiles = new List<string>();
         private static Dictionary<string, string> perexPictureMap = new Dictionary<string, string>();
 
         static void Main(string[] args) {
@@ -95,6 +96,11 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 Console.WriteLine("OK");
             }
             Console.WriteLine($"Import completed: {importedCount} articles imported, {skippedCount} skipped.");
+
+            if (failedFiles.Any()) {
+                Console.WriteLine("The following files could not be converted from HTML to MD:");
+                Console.WriteLine(string.Join(Environment.NewLine, failedFiles.ToArray()));
+            }
         }
 
         private static string ProcessArticle(DataRow row) {
@@ -178,6 +184,8 @@ namespace Altairis.Xml4Web.Importer.Nemesis {
                 }
                 catch (Exception) {
                     Console.WriteLine("Failed, fallback to HTML");
+                    sb.Append(html);
+                    failedFiles.Add(newId);
                 }
             }
             else {

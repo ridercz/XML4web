@@ -50,7 +50,23 @@ namespace Altairis.Xml4web.Compiler {
             // Copy files
             Directory.CreateDirectory(targetPath);
             foreach (var f in sourceDirectory.GetFiles()) {
-                f.CopyTo(Path.Combine(targetPath, f.Name), overwrite: true);
+                var remainingRetries = FS_RETRY_COUNT;
+                while (true) {
+                    try {
+                        f.CopyTo(Path.Combine(targetPath, f.Name), overwrite: true);
+                        break;
+                    }
+                    catch (IOException ex) {
+                        Console.WriteLine("Failed!");
+                        Console.WriteLine(ex.Message);
+
+                        remainingRetries--;
+                        if (remainingRetries == 0) Environment.Exit(Program.ERRORLEVEL_FAILURE);
+
+                        Console.Write($"Retrying in {FS_RETRY_PAUSE} ms...");
+                        Thread.Sleep(FS_RETRY_PAUSE);
+                    }
+                }
             }
 
             // Copy directories

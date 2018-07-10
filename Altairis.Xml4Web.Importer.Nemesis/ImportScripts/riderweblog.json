@@ -1,6 +1,6 @@
 {
   "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=RiderWeblog",
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Blog\\source",
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Blog\\source-raw",
   "ImportPictures": true,
   "ImportPicturesPath": "C:\\Users\\Altair\\Source\\Repos\\Blog\\static\\perex-pictures\\$(DatePublished:yyyyMMdd)-$(Title).*",
   "ImportPicturesUrl": "/perex-pictures/$(DatePublished:yyyyMMdd)-$(Title).*",
