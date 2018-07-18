@@ -11,7 +11,6 @@ namespace Altairis.Xml4web.AzureSync {
     class Program {
         public const int ERRORLEVEL_SUCCESS = 0;
         public const int ERRORLEVEL_FAILURE = 1;
-        public const string HASH_HEADER_NAME = "X_SHA256";
         private const string WEB_CONTAINER_NAME = "$web";
         private const string SYS_CONTAINER_NAME = "xml4web";
         private const string STORAGE_INDEX_NAME = "storage-index.json";
@@ -39,14 +38,17 @@ namespace Altairis.Xml4web.AzureSync {
             Console.WriteLine($@"o   o o   o O---o   o   o   o   o-o  o-o   www.xml4web.com | www.rider.cz");
             Console.WriteLine();
 
+            // Preparations
             LoadConfiguration(args);
             InitializeStorage();
+
+            // Index everything and create list of operations
             IndexLocalFolder();
             IndexAzureStorage();
             AddNewLocalItems();
-            DisplayStatistics();
 
             // Perform operations
+            DisplayStatistics();
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             var runner = new JobRunner(credentials, config.ContentTypeMap);
@@ -54,14 +56,7 @@ namespace Altairis.Xml4web.AzureSync {
             sw.Stop();
 
             // Save storage index
-            Console.Write("Saving index...");
-            var indexItems = from o in operations
-                             where o.OperationType != JobOperationType.Delete && o.OperationType != JobOperationType.Undefined
-                             select new KeyValuePair<string, string>(o.StorageUri.AbsolutePath.Remove(0, WEB_CONTAINER_NAME.Length + 2), o.ContentHash);
-            storageIndex = new StorageIndex(indexItems);
-            storageIndexBlob.Properties.ContentType = "application/json";
-            storageIndex.Save(storageIndexBlob);
-            Console.WriteLine("OK");
+            SaveIndexFile();
 
             // Display results
             Console.WriteLine();
@@ -72,6 +67,17 @@ namespace Altairis.Xml4web.AzureSync {
                 Console.WriteLine($"Successfully completed {result.Success} operations, {result.Failed} failed in {sw.Elapsed}.");
                 Console.WriteLine("See above messages on details about failed operations.");
             }
+        }
+
+        private static void SaveIndexFile() {
+            Console.Write("Saving index...");
+            var indexItems = from o in operations
+                             where o.OperationType != JobOperationType.Delete && o.OperationType != JobOperationType.Undefined
+                             select new KeyValuePair<string, string>(o.StorageUri.AbsolutePath.Remove(0, WEB_CONTAINER_NAME.Length + 2), o.ContentHash);
+            storageIndex = new StorageIndex(indexItems);
+            storageIndexBlob.Properties.ContentType = "application/json";
+            storageIndex.Save(storageIndexBlob);
+            Console.WriteLine("OK");
         }
 
         private static void InitializeStorage() {

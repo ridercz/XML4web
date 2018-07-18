@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Altairis.Xml4web.AzureSync {
     public class JobRunner {
+        private const string HASH_HEADER_NAME = "X4W_SHA256";
         private const int MEGABYTE = 1048576;                   // 1 MB
         private const int FILE_SIZE_THRESHOLD = 32 * MEGABYTE;  // 32 MB
         private const int BLOCK_SIZE = 4 * MEGABYTE;            // 4 MB
@@ -72,7 +73,7 @@ namespace Altairis.Xml4web.AzureSync {
             if (job == null) throw new ArgumentNullException(nameof(job));
             Console.Write($"Uploading {job.LogicalName}: ");
             var blob = new CloudBlockBlob(job.StorageUri, this.StorageCredentials);
-            blob.Metadata.Add(Program.HASH_HEADER_NAME, job.ContentHash);
+            blob.Metadata.Add(HASH_HEADER_NAME, job.ContentHash);
             blob.Properties.ContentType = this.ContentTypeMap.FirstOrDefault(x => x.Key.Equals(Path.GetExtension(job.LocalFileName), StringComparison.OrdinalIgnoreCase)).Value ?? "application/octet-stream";
             blob.SmartUploadFile(job.LocalFileName, (number, count) => { Console.Write("."); });
             Console.WriteLine("OK");
