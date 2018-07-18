@@ -179,7 +179,7 @@ namespace Altairis.Xml4web.AzureSync {
         }
 
         private static void IndexAzureStorage() {
-            Console.WriteLine("Comparing with Azure Storage...");
+            Console.Write("Comparing with Azure Storage...");
             foreach (var item in storageIndex) {
                 var storageUri = new Uri(webContainer.Uri + "/" + item.Key);
 
