@@ -12,6 +12,9 @@ namespace Altairis.Xml4web.AzureSync {
         public const int ERRORLEVEL_SUCCESS = 0;
         public const int ERRORLEVEL_FAILURE = 1;
         public const string HASH_HEADER_NAME = "X_SHA256";
+        private const string WEB_CONTAINER_NAME = "$web";
+        private const string SYS_CONTAINER_NAME = "xml4web";
+        private const string STORAGE_INDEX_NAME = "storage-index.json";
         private const int MEGABYTE = 1048576;
         private const int HASH_BUFFER = 65536;
         private const int MAX_LISTING_ITEMS = 5000;
@@ -19,8 +22,11 @@ namespace Altairis.Xml4web.AzureSync {
 
         private static JobConfiguration config;
         private static List<JobOperation> operations = new List<JobOperation>();
-        private static CloudBlobContainer container;
+        private static CloudBlobContainer webContainer;
         private static StorageCredentials credentials;
+        private static CloudBlockBlob storageIndexBlob;
+        private static StorageIndex storageIndex;
+
 
         static void Main(string[] args) {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -40,13 +46,24 @@ namespace Altairis.Xml4web.AzureSync {
             AddNewLocalItems();
             DisplayStatistics();
 
+            // Perform operations
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-
             var runner = new JobRunner(credentials, config.ContentTypeMap);
             var result = runner.Run(operations);
             sw.Stop();
 
+            // Save storage index
+            Console.Write("Saving index...");
+            var indexItems = from o in operations
+                             where o.OperationType != JobOperationType.Delete && o.OperationType != JobOperationType.Undefined
+                             select new KeyValuePair<string, string>(o.StorageUri.AbsolutePath.Remove(0, WEB_CONTAINER_NAME.Length + 2), o.ContentHash);
+            storageIndex = new StorageIndex(indexItems);
+            storageIndexBlob.Properties.ContentType = "application/json";
+            storageIndex.Save(storageIndexBlob);
+            Console.WriteLine("OK");
+
+            // Display results
             Console.WriteLine();
             if (result.Failed == 0) {
                 Console.WriteLine($"All {result.Success} operations completed successfully in {sw.Elapsed}.");
@@ -58,31 +75,48 @@ namespace Altairis.Xml4web.AzureSync {
         }
 
         private static void InitializeStorage() {
-            Console.Write("Initializing Azure Storage...");
             try {
-
+                // Get storage account
+                Console.Write("Initializing Azure Storage...");
                 var result = CloudStorageAccount.TryParse(config.StorageConnectionString, out var account);
                 if (!result) {
                     Console.WriteLine("Failed!");
                     Console.WriteLine("Cannot parse connection string.");
                     Environment.Exit(ERRORLEVEL_FAILURE);
                 }
+                credentials = account.Credentials;
                 var client = account.CreateCloudBlobClient();
-                container = client.GetContainerReference("$web");
-                var containerExists = container.ExistsAsync().Result;
+                Console.WriteLine("OK");
+
+                // Get web container
+                Console.Write("Getting web container...");
+                webContainer = client.GetContainerReference(WEB_CONTAINER_NAME);
+                var containerExists = webContainer.ExistsAsync().Result;
                 if (!containerExists) {
                     Console.WriteLine("Failed!");
-                    Console.WriteLine("The $web container was not found.");
+                    Console.WriteLine($"The {WEB_CONTAINER_NAME} container was not found.");
                     Environment.Exit(ERRORLEVEL_FAILURE);
                 }
-                credentials = account.Credentials;
+                Console.WriteLine($"OK, {webContainer.Uri}");
+
+                // Get index container
+                Console.Write("Getting index container...");
+                var indexContainer = client.GetContainerReference(SYS_CONTAINER_NAME);
+                indexContainer.CreateIfNotExistsAsync().Wait();
+                Console.WriteLine($"OK, {indexContainer.Uri}");
+
+                // Get storage index file
+                Console.Write("Loading storage index...");
+                storageIndexBlob = indexContainer.GetBlockBlobReference(STORAGE_INDEX_NAME);
+                storageIndex = StorageIndex.LoadOrCreateEmpty(storageIndexBlob);
+                Console.WriteLine($"OK, {storageIndex.Count} items");
+
             }
             catch (Exception ex) {
                 Console.WriteLine("Failed!");
                 Console.WriteLine(ex.Message);
                 Environment.Exit(ERRORLEVEL_FAILURE);
             }
-            Console.WriteLine($"OK, {container.Uri}");
         }
 
         private static void LoadConfiguration(string[] args) {
@@ -134,72 +168,46 @@ namespace Altairis.Xml4web.AzureSync {
             // Compute storage URI
             if (!fi.Name.Equals(config.IndexFileName, StringComparison.OrdinalIgnoreCase) && config.RemoveExtensions.Contains(fi.Extension, StringComparer.OrdinalIgnoreCase)) {
                 // Remove extension
-                r.StorageUri = new Uri(container.Uri + "/" + r.LogicalName.Substring(0, r.LogicalName.Length - fi.Extension.Length));
+                r.StorageUri = new Uri(webContainer.Uri + "/" + r.LogicalName.Substring(0, r.LogicalName.Length - fi.Extension.Length));
             }
             else {
                 // Leave as is
-                r.StorageUri = new Uri(container.Uri + "/" + r.LogicalName);
+                r.StorageUri = new Uri(webContainer.Uri + "/" + r.LogicalName);
             }
 
             return r;
         }
 
         private static void IndexAzureStorage() {
-            Console.WriteLine("Indexing Azure Storage:");
+            Console.WriteLine("Comparing with Azure Storage...");
+            foreach (var item in storageIndex) {
+                var storageUri = new Uri(webContainer.Uri + "/" + item.Key);
 
-            Console.Write("  Listing items...");
-            var listing = container.ListBlobsSegmentedAsync(string.Empty, useFlatBlobListing: true, BlobListingDetails.Metadata, MAX_LISTING_ITEMS, null, null, null).Result;
+                // Get corresponding local file
+                var op = operations.FirstOrDefault(x => x.StorageUri.Equals(storageUri));
 
-            while (true) {
-                var count = listing.Results.Count();
-                int i = 0;
-                Console.WriteLine($"OK, {count} items found");
-
-                Console.Write("  Comparing with local items");
-                foreach (var blob in listing.Results) {
-                    ProcessStorageItem(blob);
-                    i++;
-                    if (i % INDICATOR_STEP == 0) Console.Write(".");
+                // None, delete extra file in storage
+                if (op == null) {
+                    operations.Add(new JobOperation {
+                        OperationType = JobOperationType.Delete,
+                        StorageUri = storageUri
+                    });
                 }
-                Console.WriteLine("OK");
-                if (count < MAX_LISTING_ITEMS) break;
+                else {
+                    // Compute SHA256 hash of local file
+                    op.ContentHash = GetFileHash(op.LocalFileName);
 
-                Console.Write("Listing items...");
-                listing = container.ListBlobsSegmentedAsync(listing.ContinuationToken).Result;
+                    // Do nothing if hashes match
+                    if (op.ContentHash.Equals(item.Value, StringComparison.OrdinalIgnoreCase)) {
+                        op.OperationType = JobOperationType.Ignore;
+                    }
+                    else {
+                        // Update if they don't
+                        op.OperationType = JobOperationType.Update;
+                    }
+                }
             }
-        }
-
-        private static void ProcessStorageItem(IListBlobItem blob) {
-            if (blob == null) throw new ArgumentNullException(nameof(blob));
-
-            // Get local corresponding item
-            var op = operations.FirstOrDefault(x => x.StorageUri.Equals(blob.Uri));
-
-            // None, delete extra file in storage
-            if (op == null) {
-                operations.Add(new JobOperation {
-                    OperationType = JobOperationType.Delete,
-                    StorageUri = blob.Uri
-                });
-                return;
-            }
-
-            // Compute SHA256 hash of local file
-            op.ContentHash = GetFileHash(op.LocalFileName);
-
-            // Get SHA256 hash of remote file
-            var bref = new CloudBlob(blob.Uri, credentials);
-            bref.FetchAttributesAsync().Wait();
-            var remoteHash = bref.Metadata.FirstOrDefault(x => x.Key.Equals(HASH_HEADER_NAME, StringComparison.OrdinalIgnoreCase)).Value;
-
-            // Do nothing if hashes match
-            if (op.ContentHash.Equals(remoteHash, StringComparison.OrdinalIgnoreCase)) {
-                op.OperationType = JobOperationType.Ignore;
-                return;
-            }
-
-            // Update if they don't
-            op.OperationType = JobOperationType.Update;
+            Console.WriteLine("OK");
         }
 
         private static void AddNewLocalItems() {

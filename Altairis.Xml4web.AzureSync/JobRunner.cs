@@ -70,12 +70,12 @@ namespace Altairis.Xml4web.AzureSync {
 
         private void RunUploadJob(JobOperation job) {
             if (job == null) throw new ArgumentNullException(nameof(job));
-            Console.Write($"Uploading {job.LogicalName} ");
+            Console.Write($"Uploading {job.LogicalName}: ");
             var blob = new CloudBlockBlob(job.StorageUri, this.StorageCredentials);
             blob.Metadata.Add(Program.HASH_HEADER_NAME, job.ContentHash);
             blob.Properties.ContentType = this.ContentTypeMap.FirstOrDefault(x => x.Key.Equals(Path.GetExtension(job.LocalFileName), StringComparison.OrdinalIgnoreCase)).Value ?? "application/octet-stream";
-            var fileInfo = new FileInfo(job.LocalFileName);
-            UploadFileToBlob(fileInfo, blob);
+            blob.SmartUploadFile(job.LocalFileName, (number, count) => { Console.Write("."); });
+            Console.WriteLine("OK");
         }
 
         private bool RunWithRetry(Action action) {
@@ -99,58 +99,7 @@ namespace Altairis.Xml4web.AzureSync {
             }
         }
 
-        private static void UploadFileToBlob(FileInfo fileInfo, CloudBlockBlob blob) {
-            Console.Write("({0:N2} MB)", (float)fileInfo.Length / MEGABYTE);
-            if (fileInfo.Length <= FILE_SIZE_THRESHOLD) {
-                // Blob is smaller than limit - single step upload
-                Console.Write("...");
-                using (var fs = fileInfo.OpenRead()) {
-                    blob.UploadFromStreamAsync(fs).Wait();
-                }
-                Console.WriteLine("OK");
-            }
-            else {
-                // Blob is too large - upload block by block
-                Console.WriteLine(":");
-                UploadBlockBlob(fileInfo, blob);
-            }
-        }
 
-        private static void UploadBlockBlob(FileInfo fileInfo, CloudBlockBlob blob) {
-            if (fileInfo == null) throw new ArgumentNullException(nameof(fileInfo));
-            if (blob == null) throw new ArgumentNullException(nameof(blob));
-
-            var x = Console.CursorLeft;
-            var y = Console.CursorTop;
-
-            var blockCount = Math.Ceiling(((float)fileInfo.Length / BLOCK_SIZE));
-            var blockIds = new List<string>();
-            using (var file = fileInfo.OpenRead()) {
-                var currentBlockId = 0;
-                while (file.Position < file.Length) {
-                    var bufferSize = BLOCK_SIZE < file.Length - file.Position ? BLOCK_SIZE : file.Length - file.Position;
-                    var buffer = new byte[bufferSize];
-                    file.Read(buffer, 0, buffer.Length);
-
-                    using (var stream = new MemoryStream(buffer)) {
-                        stream.Position = 0;
-                        var blockIdString = Convert.ToBase64String(BitConverter.GetBytes(currentBlockId));
-
-                        Console.CursorLeft = x;
-                        Console.CursorTop = y;
-                        Console.Write("  Block {0} of {1} ({2:N0} %)...",
-                            currentBlockId + 1,
-                            blockCount,
-                            (currentBlockId + 1) / blockCount * 100);
-                        blob.PutBlockAsync(blockIdString, stream, null).Wait();
-                        blockIds.Add(blockIdString);
-                        currentBlockId++;
-                    }
-                }
-            }
-            blob.PutBlockListAsync(blockIds).Wait();
-            Console.WriteLine("OK");
-        }
 
     }
 }

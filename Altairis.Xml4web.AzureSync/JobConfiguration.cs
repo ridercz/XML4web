@@ -20,6 +20,7 @@ namespace Altairis.Xml4web.AzureSync {
         }
 
         public string StorageConnectionString { get; set; }
+        public bool UseStorageIndex { get; set; }
         public string FolderName { get; set; }
         public bool ConvertToLowercase { get; set; }
         public string IndexFileName { get; set; }
