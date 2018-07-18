@@ -13,8 +13,15 @@ namespace Altairis.Xml4web.AzureSync {
 
         public StorageIndex() { }
 
+#if NET47
+        public StorageIndex(IEnumerable<KeyValuePair<string, string>> collection) {
+            foreach (var item in collection) {
+                base.Add(item.Key, item.Value);
+            }
+        }
+#else
         public StorageIndex(IEnumerable<KeyValuePair<string, string>> collection) : base(collection) { }
-
+#endif
         public static async Task<StorageIndex> LoadOrCreateEmptyAsync(CloudBlob blob) {
             if (blob == null) throw new ArgumentNullException(nameof(blob));
             if (!await blob.ExistsAsync()) return new StorageIndex();
@@ -41,7 +48,7 @@ namespace Altairis.Xml4web.AzureSync {
             // Serialize to temporary file
             var json = JsonConvert.SerializeObject(this);
             var fileName = Path.GetTempFileName();
-            await File.WriteAllTextAsync(fileName, json);
+            File.WriteAllText(fileName, json);
 
             // Upload file to blob
             await blob.SmartUploadFileAsync(fileName);
