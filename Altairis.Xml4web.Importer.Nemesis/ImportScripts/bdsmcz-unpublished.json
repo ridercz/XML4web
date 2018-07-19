@@ -1,12 +1,12 @@
 {
   "ConnectionString": "SERVER=.\\SqlExpress;TRUSTED_CONNECTION=yes;DATABASE=BdsmMagazin",
-  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Xml4web\\Sites\\bdsm.cz-unpublished\\src",
-  "ImportPictures": true,
-  "ImportExternal": true,
+  "FolderName": "C:\\Users\\Altair\\Source\\Repos\\Bdsm\\source-unpublished",
+  "ImportPictures": false,
+  "ImportExternal": false,
   "ImportPublished": false,
   "ImportUnpublished": true,
   "FileNameFormat": "articles/$(ArticleId)-$(Title)",
   "IdentifierFormat": "$(ArticleId)-$(Title)",
   "ConvertHtmlToMarkdown": true,
-  "LinkListFileName": "linklist.tsv"
+  "LinkListFileName": "linklist-unpublished.tsv"
 }
