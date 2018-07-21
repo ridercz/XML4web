@@ -51,7 +51,7 @@ namespace Altairis.Xml4web.AzureSync {
             DisplayStatistics();
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            var runner = new JobRunner(credentials, config.ContentTypeMap);
+            var runner = new JobRunner(credentials, config.ContentTypeMap, config.CacheControlRules);
             var result = runner.Run(operations);
             sw.Stop();
 

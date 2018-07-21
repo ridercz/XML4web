@@ -25,6 +25,7 @@ namespace Altairis.Xml4web.AzureSync {
         public string IndexFileName { get; set; }
         public string[] RemoveExtensions { get; set; } = new string[0];
         public Dictionary<string, string> ContentTypeMap { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> CacheControlRules { get; set; } = new Dictionary<string, string>();
 
     }
 }

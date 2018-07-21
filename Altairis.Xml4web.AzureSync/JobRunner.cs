@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -16,15 +17,17 @@ namespace Altairis.Xml4web.AzureSync {
 
         public StorageCredentials StorageCredentials { get; }
         public Dictionary<string, string> ContentTypeMap { get; }
+        public Dictionary<string, string> CacheControlRules { get; }
         public int RetryCount { get; }
         public int RetryWaitMiliseconds { get; }
 
-        public JobRunner(StorageCredentials storageCredentials, Dictionary<string, string> contentTypeMap, int retryCount = 3, int retryWaitMiliseconds = 500) {
+        public JobRunner(StorageCredentials storageCredentials, Dictionary<string, string> contentTypeMap, Dictionary<string, string> cacheControlRules, int retryCount = 3, int retryWaitMiliseconds = 500) {
             if (retryCount < 0) throw new ArgumentOutOfRangeException(nameof(retryCount));
             if (retryWaitMiliseconds < 0) throw new ArgumentOutOfRangeException(nameof(retryWaitMiliseconds));
 
             this.StorageCredentials = storageCredentials ?? throw new ArgumentNullException(nameof(storageCredentials));
             this.ContentTypeMap = contentTypeMap ?? throw new ArgumentNullException(nameof(contentTypeMap));
+            this.CacheControlRules = cacheControlRules ?? throw new ArgumentNullException(nameof(cacheControlRules));
             this.RetryCount = retryCount;
             this.RetryWaitMiliseconds = retryWaitMiliseconds;
         }
@@ -75,6 +78,7 @@ namespace Altairis.Xml4web.AzureSync {
             var blob = new CloudBlockBlob(job.StorageUri, this.StorageCredentials);
             blob.Metadata.Add(HASH_HEADER_NAME, job.ContentHash);
             blob.Properties.ContentType = this.ContentTypeMap.FirstOrDefault(x => x.Key.Equals(Path.GetExtension(job.LocalFileName), StringComparison.OrdinalIgnoreCase)).Value ?? "application/octet-stream";
+            blob.Properties.CacheControl = this.CacheControlRules.FirstOrDefault(x => Regex.IsMatch(job.LogicalName, x.Key)).Value ?? "no-cache, no-store, must-revalidate";
             blob.SmartUploadFile(job.LocalFileName, (number, count) => { Console.Write("."); });
             Console.WriteLine("OK");
         }
@@ -99,8 +103,6 @@ namespace Altairis.Xml4web.AzureSync {
                 }
             }
         }
-
-
 
     }
 }
