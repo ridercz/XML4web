@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{391BE556-9862-4AF1-9CC4-09DD11C3108E}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -16,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altairis.Xml4web.Compiler",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altairis.Xml4web.Importer.RssFeed", "Altairis.XML4web.Importer.RssFeed\Altairis.Xml4web.Importer.RssFeed.csproj", "{356D8310-1CA3-4312-8FB3-225F0DCB901F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altairis.Xml4web.AzureSync", "Altairis.Xml4web.AzureSync\Altairis.Xml4web.AzureSync.csproj", "{025AD6D4-9059-4D88-8786-9F08BB3D6803}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altairis.Xml4web.AzureSync", "Altairis.Xml4web.AzureSync\Altairis.Xml4web.AzureSync.csproj", "{025AD6D4-9059-4D88-8786-9F08BB3D6803}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

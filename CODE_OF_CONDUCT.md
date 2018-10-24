@@ -1,7 +1,4 @@
-# XML4web
-XML4web static file generator
-
-## Contributor Code of Conduct
+# Contributor Code of Conduct
 
 This project adheres to No Code of Conduct. We are all adults. We accept anyone's contributions. Nothing else matters.
 
