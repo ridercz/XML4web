@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml;
 using Markdig;
 
@@ -72,6 +73,10 @@ namespace Altairis.Xml4web.Compiler {
                 if (CharUnicodeInfo.GetUnicodeCategory(s[i]) != UnicodeCategory.NonSpacingMark) sb.Append(s[i]);
             }
             return sb.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        public string UrlEncode(string s) {
+            return HttpUtility.UrlEncode(s);
         }
 
     }
