@@ -1,37 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace Altairis.Xml4web.Compiler {
     public class XmlOutputProcessor {
-        readonly XmlDocument _mainDoc;
-        readonly string _baseFolder;
-        readonly string _prependDoctype;
-        readonly XmlNamespaceManager _nsmgr;
+        readonly XmlDocument mainDoc;
+        readonly string baseFolder;
+        readonly string prependDoctype;
+        readonly XmlNamespaceManager nsmgr;
 
         public XmlOutputProcessor(string mainDocName, string baseFolder, string prependDoctype) {
-            _mainDoc = new XmlDocument();
-            _mainDoc.Load(mainDocName);
+            this.mainDoc = new XmlDocument();
+            this.mainDoc.Load(mainDocName);
 
-            _nsmgr = new XmlNamespaceManager(_mainDoc.NameTable);
-            _nsmgr.AddNamespace("x4o", Namespaces.X4O);
+            this.nsmgr = new XmlNamespaceManager(this.mainDoc.NameTable);
+            this.nsmgr.AddNamespace("x4o", Namespaces.X4O);
 
-            _baseFolder = baseFolder;
-            _prependDoctype = prependDoctype;
+            this.baseFolder = baseFolder;
+            this.prependDoctype = prependDoctype;
         }
 
         public void SaveAllFiles(string mainFileName) {
             // Check if there are multiple output documents
-            var outputDocuments = _mainDoc.SelectNodes("/x4o:root/x4o:document", this._nsmgr);
+            var outputDocuments = this.mainDoc.SelectNodes("/x4o:root/x4o:document", this.nsmgr);
 
             if (outputDocuments.Count == 0) {
                 // Single document
-                this.SaveFile(_mainDoc, mainFileName);
+                this.SaveFile(this.mainDoc, mainFileName);
             }
             else {
                 // Multiple documents
@@ -50,7 +47,7 @@ namespace Altairis.Xml4web.Compiler {
 
             var replacements = new NameValueCollection();
 
-            foreach (XmlElement item in doc.SelectNodes("//*[@x4o:unescape='true']", _nsmgr)) {
+            foreach (XmlElement item in doc.SelectNodes("//*[@x4o:unescape='true']", this.nsmgr)) {
                 item.RemoveAttribute("unescape", Namespaces.X4O);
                 var key = $"<!--REPLACE:{Guid.NewGuid()}-->";
                 replacements.Add(key, item.InnerText);
@@ -58,7 +55,7 @@ namespace Altairis.Xml4web.Compiler {
             }
 
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(_prependDoctype) && doc.DocumentElement.LocalName.Equals("html", StringComparison.OrdinalIgnoreCase)) sb.AppendLine(_prependDoctype);
+            if (!string.IsNullOrEmpty(this.prependDoctype) && doc.DocumentElement.LocalName.Equals("html", StringComparison.OrdinalIgnoreCase)) sb.AppendLine(this.prependDoctype);
             var settings = new XmlWriterSettings {
                 Encoding = Encoding.UTF8,
                 Indent = true,
@@ -74,7 +71,7 @@ namespace Altairis.Xml4web.Compiler {
                 sb = sb.Replace(key, replacements[key]);
             }
 
-            fileName = Path.Combine(_baseFolder, fileName.Trim('/', '\\'));
+            fileName = Path.Combine(this.baseFolder, fileName.Trim('/', '\\'));
             Directory.CreateDirectory(Path.GetDirectoryName(fileName));
             File.WriteAllText(fileName, sb.ToString());
         }

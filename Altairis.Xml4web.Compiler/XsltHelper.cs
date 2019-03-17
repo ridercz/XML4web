@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
 using Markdig;
@@ -15,7 +13,7 @@ namespace Altairis.Xml4web.Compiler {
         private readonly BuildConfiguration _config;
 
         public XsltHelper(BuildConfiguration config) {
-            _config = config;
+            this._config = config;
         }
 
         public string FormatDateTime(string dateTime, string formatString, string culture) {
@@ -34,7 +32,7 @@ namespace Altairis.Xml4web.Compiler {
         public string CurrentDateTime() => XmlConvert.ToString(DateTime.Now, XmlDateTimeSerializationMode.RoundtripKind);
 
         public string ComputeHash(string path) {
-            var fullFileName = Path.Combine(_config.StaticFolder, path.Trim('/', '\\'));
+            var fullFileName = Path.Combine(this._config.StaticFolder, path.Trim('/', '\\'));
             using (var sha = new System.Security.Cryptography.SHA1Managed()) {
                 var hash = sha.ComputeHash(File.ReadAllBytes(fullFileName));
                 return string.Join(string.Empty, hash.Select(x => x.ToString("X2")));
@@ -42,7 +40,7 @@ namespace Altairis.Xml4web.Compiler {
         }
 
         public string GetItemHtml(string path) {
-            var fullFileName = Path.Combine(_config.SourceFolder, path.Trim('/', '\\') + ".md");
+            var fullFileName = Path.Combine(this._config.SourceFolder, path.Trim('/', '\\') + ".md");
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
             var mdLines = File.ReadAllLines(fullFileName);
             var mdSb = new StringBuilder();
@@ -57,7 +55,7 @@ namespace Altairis.Xml4web.Compiler {
 
         public string UrlKey(string s) {
             if (string.IsNullOrEmpty(s)) return "null";
-            s = RemoveDiacritics(s).ToLower();
+            s = this.RemoveDiacritics(s).ToLower();
             s = Regex.Replace(s, "[^a-z0-9]", "-");
             s = s.Trim('-');
             while (s.Contains("--")) s = s.Replace("--", "-");

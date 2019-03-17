@@ -5,14 +5,13 @@ using System.Linq;
 using System.Xml;
 using System.Xml.XPath;
 using System.Xml.Xsl;
-using HtmlAgilityPack;
 
 namespace Altairis.Xml4web.Compiler {
     class Program {
         public const int ERRORLEVEL_SUCCESS = 0;
         public const int ERRORLEVEL_FAILURE = 1;
 
-        private static BuildConfiguration _config;
+        private static BuildConfiguration config;
 
         static void Main(string[] args) {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -33,7 +32,7 @@ namespace Altairis.Xml4web.Compiler {
             PrepareFileSystem();
 
             // Create site metadata document
-            var metadataFileName = Path.Combine(_config.WorkFolder, "metadata.xml");
+            var metadataFileName = Path.Combine(config.WorkFolder, "metadata.xml");
             var metadataDocument = CreateMetadataDocument();
             metadataDocument.Save(metadataFileName);
 
@@ -42,7 +41,7 @@ namespace Altairis.Xml4web.Compiler {
 
             // Check if there are some errors
             tsw.Stop();
-            var logFiles = Directory.GetFiles(_config.WorkFolder, "*.log");
+            var logFiles = Directory.GetFiles(config.WorkFolder, "*.log");
             if (!logFiles.Any()) {
                 Console.WriteLine($"Build completed successfully in {tsw.ElapsedMilliseconds} ms.");
                 Environment.Exit(ERRORLEVEL_SUCCESS);
@@ -70,7 +69,7 @@ namespace Altairis.Xml4web.Compiler {
             // Load configuration
             Console.Write("Loading configuration...");
             try {
-                _config = BuildConfiguration.Load(buildScriptFileName);
+                config = BuildConfiguration.Load(buildScriptFileName);
                 Console.WriteLine("OK");
             }
             catch (Exception ex) {
@@ -82,18 +81,18 @@ namespace Altairis.Xml4web.Compiler {
 
         private static void PrepareFileSystem() {
             // Delete target and work folder
-            FileSystemHelper.DirectoryDelete(_config.TargetFolder);
-            Directory.CreateDirectory(_config.TargetFolder);
-            FileSystemHelper.DirectoryDelete(_config.WorkFolder);
-            Directory.CreateDirectory(_config.WorkFolder);
+            FileSystemHelper.DirectoryDelete(config.TargetFolder);
+            Directory.CreateDirectory(config.TargetFolder);
+            FileSystemHelper.DirectoryDelete(config.WorkFolder);
+            Directory.CreateDirectory(config.WorkFolder);
 
             // Copy static data to output folder
-            if (Directory.Exists(_config.StaticFolder)) {
-                Console.Write($"Copying {_config.StaticFolder} to {_config.TargetFolder}...");
+            if (Directory.Exists(config.StaticFolder)) {
+                Console.Write($"Copying {config.StaticFolder} to {config.TargetFolder}...");
                 try {
                     var sw = new Stopwatch();
                     sw.Start();
-                    FileSystemHelper.DirectoryCopy(_config.StaticFolder, _config.TargetFolder);
+                    FileSystemHelper.DirectoryCopy(config.StaticFolder, config.TargetFolder);
                     sw.Stop();
                     Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
                 }
@@ -109,12 +108,12 @@ namespace Altairis.Xml4web.Compiler {
             Console.Write("Creating metadata document...");
             var sw = new Stopwatch();
             sw.Start();
-            var doc = SiteMetadataDocument.CreateFromFolder(_config.SourceFolder);
+            var doc = SiteMetadataDocument.CreateFromFolder(config.SourceFolder);
             sw.Stop();
 
             if (doc.Errors.Any()) {
                 Console.WriteLine($"Done in {sw.ElapsedMilliseconds} ms with {doc.Errors.Count()} errors, see metadata.xml.log for details.");
-                File.WriteAllLines(Path.Combine(_config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join("\t", x.Key, x.Value)));
+                File.WriteAllLines(Path.Combine(config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join("\t", x.Key, x.Value)));
             }
             else {
                 Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
@@ -124,23 +123,23 @@ namespace Altairis.Xml4web.Compiler {
 
         private static void RunAllTransforms(SiteMetadataDocument metadataDocument) {
             Console.WriteLine("Running HTML transformations:");
-            foreach (var transform in _config.HtmlTransforms) {
-                var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
-                var outputFileName = Path.Combine(_config.WorkFolder, Path.GetFileNameWithoutExtension(transform.Key) + ".xml");
+            foreach (var transform in config.HtmlTransforms) {
+                var templateFileName = Path.Combine(config.XsltFolder, transform.Key);
+                var outputFileName = Path.Combine(config.WorkFolder, Path.GetFileNameWithoutExtension(transform.Key) + ".xml");
 
                 RunTransform(metadataDocument, templateFileName, outputFileName);
 
                 Console.Write("  Running post-processor...");
-                var proc = new XmlOutputProcessor(outputFileName, _config.TargetFolder, _config.PrependHtmlDoctype);
+                var proc = new XmlOutputProcessor(outputFileName, config.TargetFolder, config.PrependHtmlDoctype);
                 proc.SaveAllFiles(transform.Value);
                 Console.WriteLine("OK");
             }
 
             // Run raw transforms
             Console.WriteLine("Running raw transformations:");
-            foreach (var transform in _config.RawTransforms) {
-                var templateFileName = Path.Combine(_config.XsltFolder, transform.Key);
-                var outputFileName = Path.Combine(_config.TargetFolder, transform.Value);
+            foreach (var transform in config.RawTransforms) {
+                var templateFileName = Path.Combine(config.XsltFolder, transform.Key);
+                var outputFileName = Path.Combine(config.TargetFolder, transform.Value);
 
                 RunTransform(metadataDocument, templateFileName, outputFileName);
             }
@@ -157,8 +156,8 @@ namespace Altairis.Xml4web.Compiler {
 
                 // Prepare transformation
                 var args = new XsltArgumentList();
-                args.AddExtensionObject(Namespaces.X4H, new XsltHelper(_config));
-                foreach (var item in _config.TransformParameters) {
+                args.AddExtensionObject(Namespaces.X4H, new XsltHelper(config));
+                foreach (var item in config.TransformParameters) {
                     args.AddParam(item.Key, Namespaces.X4C, item.Value);
                 }
 
@@ -175,7 +174,7 @@ namespace Altairis.Xml4web.Compiler {
             }
             catch (Exception ex) {
                 Console.WriteLine("Failed!");
-                var errorLogName = Path.Combine(_config.WorkFolder, Path.GetFileName(templateFileName) + ".log");
+                var errorLogName = Path.Combine(config.WorkFolder, Path.GetFileName(templateFileName) + ".log");
                 Console.WriteLine($"For details see {errorLogName}");
                 File.WriteAllText(errorLogName, ex.ToString());
             }

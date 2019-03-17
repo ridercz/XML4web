@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
-using System.Xml.Schema;
 
 namespace Altairis.Xml4web.Compiler {
     public class SiteMetadataDocument : XmlDocument {
-        XmlNamespaceManager _nsmgr;
+        XmlNamespaceManager nsmgr;
 
         public ICollection<KeyValuePair<string, string>> Errors { get; }
         public string SourceFolderName { get; private set; }
@@ -31,18 +25,18 @@ namespace Altairis.Xml4web.Compiler {
             this.AppendChild(this.CreateElement("siteMetadata"));
 
             // Add default namespaces
-            _nsmgr = new XmlNamespaceManager(this.NameTable);
-            _nsmgr.AddNamespace("dcterms", Namespaces.DCTerms);
-            _nsmgr.AddNamespace("dc", Namespaces.DC);
-            _nsmgr.AddNamespace("x4w", Namespaces.X4W);
-            _nsmgr.AddNamespace("x4h", Namespaces.X4H);
+            this.nsmgr = new XmlNamespaceManager(this.NameTable);
+            this.nsmgr.AddNamespace("dcterms", Namespaces.DCTerms);
+            this.nsmgr.AddNamespace("dc", Namespaces.DC);
+            this.nsmgr.AddNamespace("x4w", Namespaces.X4W);
+            this.nsmgr.AddNamespace("x4h", Namespaces.X4H);
 
             // Add namespaces from file
             var lines = File.ReadAllLines(namespaceFile);
             foreach (var line in lines) {
                 var data = line.Split(new char[] { ':' }, 2);
                 if (data.Length != 2) continue;
-                _nsmgr.AddNamespace(data[0], data[1]);
+                this.nsmgr.AddNamespace(data[0], data[1]);
                 this.DocumentElement.SetAttribute("xmlns:" + data[0], data[1]);
             }
 
@@ -63,7 +57,7 @@ namespace Altairis.Xml4web.Compiler {
             // Import metadata from index page
             var indexFileName = Path.Combine(folderName, "index.md");
             if (File.Exists(indexFileName)) {
-                foreach (var item in GetMetadataElementsFromFile(indexFileName)) {
+                foreach (var item in this.GetMetadataElementsFromFile(indexFileName)) {
                     folderElement.AppendChild(item);
                 }
             }
@@ -72,7 +66,7 @@ namespace Altairis.Xml4web.Compiler {
             foreach (var fileName in Directory.GetFiles(folderName, "*.md")) {
                 var fileElement = this.CreateElement("file");
                 fileElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
-                foreach (var item in GetMetadataElementsFromFile(fileName)) {
+                foreach (var item in this.GetMetadataElementsFromFile(fileName)) {
                     fileElement.AppendChild(item);
                 }
                 folderElement.AppendChild(fileElement);
@@ -83,7 +77,7 @@ namespace Altairis.Xml4web.Compiler {
 
             // Recurse folders
             foreach (var item in Directory.GetDirectories(folderName)) {
-                ScanFolder(item, folderElement);
+                this.ScanFolder(item, folderElement);
             }
 
         }
@@ -95,7 +89,7 @@ namespace Altairis.Xml4web.Compiler {
                     if (separatorIndex == -1 || separatorIndex == 0 || separatorIndex == item.Key.Length - 1) {
                         this.Errors.Add(new KeyValuePair<string, string>(mdFileName, $"Invalid syntax of metadata key \"{item.Key}\"."));
                     }
-                    else if (string.IsNullOrEmpty(_nsmgr.LookupNamespace(item.Key.Substring(0, separatorIndex)))) {
+                    else if (string.IsNullOrEmpty(this.nsmgr.LookupNamespace(item.Key.Substring(0, separatorIndex)))) {
                         this.Errors.Add(new KeyValuePair<string, string>(mdFileName, $"Unknown prefix of metadata key \"{item.Key}\"."));
                     }
                     else {
@@ -131,7 +125,7 @@ namespace Altairis.Xml4web.Compiler {
             var qnData = qualifiedName.Split(':');
             if (qnData.Length != 2) throw new ArgumentException($"Value '{qualifiedName}' must contain exactly one ':'.", nameof(qualifiedName));
 
-            return this.CreateElement(qualifiedName, _nsmgr.LookupNamespace(qnData[0]));
+            return this.CreateElement(qualifiedName, this.nsmgr.LookupNamespace(qnData[0]));
         }
 
         private XmlElement CreateQualifiedElement(string qualifiedName, string text) {
