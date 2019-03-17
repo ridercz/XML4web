@@ -32,7 +32,7 @@ namespace Altairis.Xml4web.AzureSync {
 
             Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Azure Site Sync Tool");
             Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}");
-            Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018");
+            Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018-2019");
             Console.WriteLine($@" / \  |   | |       |  \ / \ /  |-'  |  |  Michal A. Valášek - Altairis");
             Console.WriteLine($@"o   o o   o O---o   o   o   o   o-o  o-o   www.xml4web.com | www.rider.cz");
             Console.WriteLine();

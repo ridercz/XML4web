@@ -18,7 +18,7 @@ namespace Altairis.Xml4web.Compiler {
             Console.WriteLine();
             Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Static Site Generator");
             Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}");
-            Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018");
+            Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018-2019");
             Console.WriteLine($@" / \  |   | |       |  \ / \ /  |-'  |  |  Michal A. Valášek - Altairis");
             Console.WriteLine($@"o   o o   o O---o   o   o   o   o-o  o-o   www.xml4web.com | www.rider.cz");
             Console.WriteLine();
