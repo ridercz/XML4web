@@ -5,7 +5,6 @@ using System.Threading;
 
 namespace Altairis.Xml4web.Compiler {
     public static class FileSystemHelper {
-
         private const int FS_RETRY_COUNT = 10;
         private const int FS_RETRY_PAUSE = 500; //ms
 

@@ -5,14 +5,16 @@ using System.Xml;
 
 namespace Altairis.Xml4web.Compiler {
     public class SiteMetadataDocument : XmlDocument {
-        XmlNamespaceManager nsmgr;
+        private readonly XmlNamespaceManager nsmgr;
 
         public ICollection<KeyValuePair<string, string>> Errors { get; }
+
         public string SourceFolderName { get; private set; }
 
         public static SiteMetadataDocument CreateFromFolder(string sourceFolderName) {
-            var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "namespaces.txt"));
-            doc.SourceFolderName = sourceFolderName.TrimEnd('\\');
+            var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "namespaces.txt")) {
+                SourceFolderName = sourceFolderName.TrimEnd('\\')
+            };
             doc.ScanFolder(doc.SourceFolderName, doc.DocumentElement);
             return doc;
         }

@@ -30,7 +30,6 @@ namespace Altairis.Xml4web.Compiler {
             this.WorkFolder = this.ExpandPath(this.WorkFolder);
         }
 
-
         private string FileName { get; set; }
 
         public string SourceFolder { get; set; }
