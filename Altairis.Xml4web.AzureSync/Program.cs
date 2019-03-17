@@ -10,6 +10,12 @@ namespace Altairis.Xml4web.AzureSync {
     class Program {
         public const int ERRORLEVEL_SUCCESS = 0;
         public const int ERRORLEVEL_FAILURE = 1;
+
+#if NET47
+        private const string FX_NAME = "NetFX";
+#elif NETCOREAPP
+        private const string FX_NAME = "CoreCLR";
+#endif
         private const string WEB_CONTAINER_NAME = "$web";
         private const string SYS_CONTAINER_NAME = "xml4web";
         private const string STORAGE_INDEX_NAME = "storage-index.json";
@@ -29,9 +35,8 @@ namespace Altairis.Xml4web.AzureSync {
         static void Main(string[] args) {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Console.WriteLine();
-
             Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Azure Site Sync Tool");
-            Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}");
+            Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}/{FX_NAME}");
             Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018-2019");
             Console.WriteLine($@" / \  |   | |       |  \ / \ /  |-'  |  |  Michal A. Valášek - Altairis");
             Console.WriteLine($@"o   o o   o O---o   o   o   o   o-o  o-o   www.xml4web.com | www.rider.cz");
@@ -126,12 +131,12 @@ namespace Altairis.Xml4web.AzureSync {
 
         private static void LoadConfiguration(string[] args) {
             // Validate/load arguments
-            if (args.Length != 2) {
+            if (args.Length != 1) {
                 Console.WriteLine("USAGE: x4w-azsync jobname.json");
                 Environment.Exit(ERRORLEVEL_SUCCESS);
             }
 
-            var jobConfigFileName = args[1];
+            var jobConfigFileName = args[0];
             if (!File.Exists(jobConfigFileName)) {
                 Console.WriteLine($"ERROR: File '{jobConfigFileName}' was not found!");
                 Environment.Exit(ERRORLEVEL_FAILURE);

@@ -8,6 +8,11 @@ using System.Xml.Xsl;
 
 namespace Altairis.Xml4web.Compiler {
     class Program {
+#if NET47
+        private const string FX_NAME = "NetFX";
+#elif NETCOREAPP
+        private const string FX_NAME = "CoreCLR";
+#endif
         public const int ERRORLEVEL_SUCCESS = 0;
         public const int ERRORLEVEL_FAILURE = 1;
 
@@ -17,7 +22,7 @@ namespace Altairis.Xml4web.Compiler {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Console.WriteLine();
             Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Static Site Generator");
-            Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}");
+            Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}/{FX_NAME}");
             Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018-2019");
             Console.WriteLine($@" / \  |   | |       |  \ / \ /  |-'  |  |  Michal A. Valášek - Altairis");
             Console.WriteLine($@"o   o o   o O---o   o   o   o   o-o  o-o   www.xml4web.com | www.rider.cz");
@@ -55,12 +60,12 @@ namespace Altairis.Xml4web.Compiler {
 
         private static void LoadConfiguration(string[] args) {
             // Validate/load arguments
-            if (args.Length != 2) {
+            if (args.Length != 1) {
                 Console.WriteLine("USAGE: x4w-compiler buildscript.json");
                 Environment.Exit(ERRORLEVEL_SUCCESS);
             }
 
-            var buildScriptFileName = args[1];
+            var buildScriptFileName = args[0];
             if (!File.Exists(buildScriptFileName)) {
                 Console.WriteLine($"ERROR: File '{buildScriptFileName}' was not found!");
                 Environment.Exit(ERRORLEVEL_FAILURE);
