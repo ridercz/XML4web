@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="htmlagilitypack" Version="1.9.2" />
+    <PackageReference Include="htmlagilitypack" Version="1.11.4" />
     <PackageReference Include="markdig" Version="0.17.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
