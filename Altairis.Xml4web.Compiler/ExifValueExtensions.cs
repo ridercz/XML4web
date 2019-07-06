@@ -18,7 +18,7 @@ namespace Altairis.Xml4web.Compiler {
             if (exif.Tag == ExifTag.Unknown || exif.DataType == ExifDataType.Undefined || exif.DataType == ExifDataType.Unknown) return null;
 
             string GetLabel(object value, string labels) {
-                var labelArray = labels.Split(",").Select(s => s.Trim()).ToArray();
+                var labelArray = labels.Split(',').Select(s => s.Trim()).ToArray();
                 var index = (ushort)value;
                 return index < 0 || index >= labelArray.LongLength ? labelArray[0] : labelArray[index];
             }
