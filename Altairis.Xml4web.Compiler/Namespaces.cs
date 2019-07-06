@@ -7,5 +7,6 @@
         public const string X4F = "https://schemas.altairis.cz/XML4web/FileSystemInfo/";
         public const string DCTerms = "http://purl.org/dc/terms/";
         public const string DC = "http://purl.org/dc/elements/1.1/";
+        public const string Exif = "http://www.w3.org/2003/12/exif/ns";
     }
 }

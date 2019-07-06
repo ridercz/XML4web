@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using SixLabors.ImageSharp;
 
 namespace Altairis.Xml4web.Compiler {
     public class SiteMetadataDocument : XmlDocument {
         private readonly XmlNamespaceManager nsmgr;
+
+        // Factory method
 
         public static SiteMetadataDocument CreateFromFolder(string sourceFolderName) {
             var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "namespaces.txt")) {
@@ -15,6 +18,8 @@ namespace Altairis.Xml4web.Compiler {
             doc.ScanFolder(doc.SourceFolderName, doc.DocumentElement);
             return doc;
         }
+
+        // Constructor
 
         private SiteMetadataDocument(string namespaceFile) {
             if (namespaceFile == null) throw new ArgumentNullException(nameof(namespaceFile));
@@ -30,6 +35,7 @@ namespace Altairis.Xml4web.Compiler {
             this.nsmgr.AddNamespace("x4w", Namespaces.X4W);
             this.nsmgr.AddNamespace("x4h", Namespaces.X4H);
             this.nsmgr.AddNamespace("x4f", Namespaces.X4F);
+            this.nsmgr.AddNamespace("exif", Namespaces.Exif);
 
             // Add namespaces from file
             var lines = File.ReadAllLines(namespaceFile);
@@ -47,58 +53,94 @@ namespace Altairis.Xml4web.Compiler {
             this.Errors = new List<KeyValuePair<string, string>>();
         }
 
+        // Properties
+
         public ICollection<KeyValuePair<string, string>> Errors { get; }
 
         public string SourceFolderName { get; private set; }
 
+        // Methods
+
         private void ScanFolder(string folderName, XmlElement parentElement) {
-            // Create item node
+            // Create folder node
             folderName = folderName.TrimEnd('\\');
             var pathId = folderName.Substring(this.SourceFolderName.Length).Replace('\\', '/');
             var folderElement = this.CreateElement("folder");
             folderElement.SetAttribute("path", string.IsNullOrEmpty(pathId) ? "/" : pathId);
 
-            // Import metadata from index page
+            // Import metadata from index page, if any
             var indexFileName = Path.Combine(folderName, "index.md");
-            if (File.Exists(indexFileName)) {
-                foreach (var item in this.GetMetadataElementsForPage(indexFileName)) {
-                    folderElement.AppendChild(item);
+            if (File.Exists(indexFileName)) folderElement.AppendChildren(this.GetMetadataElementsForPage(indexFileName));
+
+            // Process files
+            foreach (var fileName in Directory.GetFiles(folderName)) {
+                var extension = Path.GetExtension(fileName).ToLower();
+                XmlElement itemElement;
+
+                switch (extension) {
+                    case ".md":
+                        // Markdown file
+                        itemElement = this.CreateElement("page");
+                        itemElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
+                        itemElement.AppendChildren(this.GetMetadataElementsForPage(fileName));
+                        break;
+                    case ".jpg":
+                    case ".jpeg":
+                    case ".png":
+                        // Image file
+                        itemElement = this.CreateElement("image");
+                        itemElement.SetAttribute("path", pathId + "/" + Path.GetFileName(fileName));
+                        itemElement.AppendChildren(this.GetMetadataElementsForImage(fileName));
+                        break;
+                    default:
+                        // Other file
+                        itemElement = this.CreateElement("file");
+                        itemElement.SetAttribute("path", pathId + "/" + Path.GetFileName(fileName));
+                        break;
                 }
+
+                // Add general file metadata
+                itemElement.AppendChildren(this.GetMetadataElementsForFile(fileName));
+                folderElement.AppendChild(itemElement);
             }
 
-            // Import metadata from other pages
-            foreach (var fileName in Directory.GetFiles(folderName, "*.md")) {
-                var pageElement = this.CreateElement("page");
-                pageElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
-                foreach (var item in this.GetMetadataElementsForPage(fileName)) {
-                    pageElement.AppendChild(item);
-                }
-                folderElement.AppendChild(pageElement);
-            }
-
-            // Add item node to document
+            // Add folder node to document
             parentElement.AppendChild(folderElement);
 
             // Recurse folders
             foreach (var item in Directory.GetDirectories(folderName)) {
                 this.ScanFolder(item, folderElement);
             }
+        }
 
+        private IEnumerable<XmlElement> GetMetadataElementsForFile(string fileName) {
+            var fi = new FileInfo(fileName);
+            if (!fi.Exists) return Enumerable.Empty<XmlElement>();
+
+            // Add general file metadata
+            return new XmlElement[] {
+                this.CreateQualifiedElement("x4f:creationTime", fi.CreationTime),
+                this.CreateQualifiedElement("x4f:lastAccessTime", fi.LastAccessTime),
+                this.CreateQualifiedElement("x4f:lastWriteTime", fi.LastWriteTime),
+                this.CreateQualifiedElement("x4f:size", fi.Length),
+            };
+        }
+
+        private IEnumerable<XmlElement> GetMetadataElementsForImage(string imageFileName) {
+            var fi = new FileInfo(imageFileName);
+            if (!fi.Exists) return Enumerable.Empty<XmlElement>();
+
+            var exif = this.ReadExifMetadata(fi.FullName);
+            return exif.Select(x => this.CreateQualifiedElement(x.Key, x.Value));
         }
 
         private IEnumerable<XmlElement> GetMetadataElementsForPage(string mdFileName) {
             var fi = new FileInfo(mdFileName);
             if (!fi.Exists) yield break;
 
-            // Add general file metadata
-            yield return this.CreateQualifiedElement("x4f:creationTime", fi.CreationTime);
-            yield return this.CreateQualifiedElement("x4f:lastAccessTime", fi.LastAccessTime);
-            yield return this.CreateQualifiedElement("x4f:lastWriteTime", fi.LastWriteTime);
-            yield return this.CreateQualifiedElement("x4f:size", fi.Length);
-
             // Add markdown-specific metadata
             if (Path.GetExtension(mdFileName).Equals(".md", StringComparison.OrdinalIgnoreCase)) {
-                foreach (var item in this.GetMetadataFromMarkdownFile(mdFileName)) {
+                foreach (var item in this.ReadMarkdownMetadata(mdFileName)) {
                     var separatorIndex = item.Key.IndexOf(':');
                     if (separatorIndex == -1 || separatorIndex == 0 || separatorIndex == item.Key.Length - 1) {
                         this.Errors.Add(new KeyValuePair<string, string>(mdFileName, $"Invalid syntax of metadata key \"{item.Key}\"."));
@@ -111,9 +153,9 @@ namespace Altairis.Xml4web.Compiler {
             }
         }
 
-        // Helper methods
+        // Metadata reading methods
 
-        private IEnumerable<KeyValuePair<string, string>> GetMetadataFromMarkdownFile(string mdFileName) {
+        private IEnumerable<KeyValuePair<string, string>> ReadMarkdownMetadata(string mdFileName) {
             var metadataRead = false;
             using (var sr = File.OpenText(mdFileName)) {
                 while (!sr.EndOfStream) {
@@ -129,6 +171,30 @@ namespace Altairis.Xml4web.Compiler {
                 }
             }
         }
+
+        private IEnumerable<KeyValuePair<string, string>> ReadExifMetadata(string imageFileName) {
+            using (var img = Image.Load(imageFileName)) {
+                if (img.MetaData.ExifProfile != null) {
+                    // Get EXIF metadata
+                    foreach (var item in img.MetaData.ExifProfile.Values) {
+                        var stringValue = item.ToPrettyString();
+                        if (string.IsNullOrWhiteSpace(stringValue)) continue;
+
+                        var stringName = item.Tag.ToString();
+                        stringName = char.ToLowerInvariant(stringName[0]) + stringName.Substring(1);
+
+                        yield return new KeyValuePair<string, string>("exif:" + stringName, stringValue);
+                    }
+                } else {
+                    // No EXIF metadata found, send at least size
+                    yield return new KeyValuePair<string, string>("exif:pixelXDimension", img.Width.ToString());
+                    yield return new KeyValuePair<string, string>("exif:pixelYDimension", img.Height.ToString());
+                }
+            }
+        }
+
+
+        // XML helper methods
 
         private XmlElement CreateQualifiedElement(string qualifiedName) {
             if (qualifiedName == null) throw new ArgumentNullException(nameof(qualifiedName));
