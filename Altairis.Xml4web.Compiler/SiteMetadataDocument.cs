@@ -21,10 +21,7 @@ namespace Altairis.Xml4web.Compiler {
 
         // Constructor
 
-        private SiteMetadataDocument(string namespaceFile) {
-            if (namespaceFile == null) throw new ArgumentNullException(nameof(namespaceFile));
-            if (string.IsNullOrWhiteSpace(namespaceFile)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(namespaceFile));
-
+        private SiteMetadataDocument(string namespaceFile = null) {
             // Create root element
             this.AppendChild(this.CreateElement("siteMetadata"));
 
@@ -38,13 +35,20 @@ namespace Altairis.Xml4web.Compiler {
             this.nsmgr.AddNamespace("exif", Namespaces.Exif);
 
             // Add namespaces from file
-            var lines = File.ReadAllLines(namespaceFile);
-            foreach (var line in lines) {
-                var data = line.Split(new char[] { ':' }, 2);
-                if (data.Length != 2) continue;
-                this.nsmgr.AddNamespace(data[0], data[1]);
-                this.DocumentElement.SetAttribute("xmlns:" + data[0], data[1]);
+            if (!string.IsNullOrEmpty(namespaceFile) && File.Exists(namespaceFile)) {
+                var lines = File.ReadAllLines(namespaceFile);
+                foreach (var line in lines) {
+                    var data = line.Split(new char[] { ':' }, 2);
+                    if (data.Length != 2) continue;
+                    this.nsmgr.AddNamespace(data[0], data[1]);
+                }
             }
+
+            // Add namespaces
+            foreach (var nsdef in this.nsmgr.GetNamespacesInScope(XmlNamespaceScope.All)) {
+                this.DocumentElement.SetAttribute("xmlns:" + nsdef.Key, nsdef.Value);
+            }
+
 
             // Add creation date
             this.DocumentElement.AppendChild(this.CreateQualifiedElement("dcterms:created", DateTime.Now));
