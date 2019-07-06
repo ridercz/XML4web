@@ -8,10 +8,6 @@ namespace Altairis.Xml4web.Compiler {
     public class SiteMetadataDocument : XmlDocument {
         private readonly XmlNamespaceManager nsmgr;
 
-        public ICollection<KeyValuePair<string, string>> Errors { get; }
-
-        public string SourceFolderName { get; private set; }
-
         public static SiteMetadataDocument CreateFromFolder(string sourceFolderName) {
             var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "namespaces.txt")) {
                 SourceFolderName = sourceFolderName.TrimEnd('\\')
@@ -51,6 +47,10 @@ namespace Altairis.Xml4web.Compiler {
             this.Errors = new List<KeyValuePair<string, string>>();
         }
 
+        public ICollection<KeyValuePair<string, string>> Errors { get; }
+
+        public string SourceFolderName { get; private set; }
+
         private void ScanFolder(string folderName, XmlElement parentElement) {
             // Create item node
             folderName = folderName.TrimEnd('\\');
@@ -68,12 +68,12 @@ namespace Altairis.Xml4web.Compiler {
 
             // Import metadata from other pages
             foreach (var fileName in Directory.GetFiles(folderName, "*.md")) {
-                var fileElement = this.CreateElement("page");
-                fileElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
+                var pageElement = this.CreateElement("page");
+                pageElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
                 foreach (var item in this.GetMetadataElementsForPage(fileName)) {
-                    fileElement.AppendChild(item);
+                    pageElement.AppendChild(item);
                 }
-                folderElement.AppendChild(fileElement);
+                folderElement.AppendChild(pageElement);
             }
 
             // Add item node to document
