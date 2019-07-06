@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 
 namespace Altairis.Xml4web.Compiler {
@@ -32,6 +33,7 @@ namespace Altairis.Xml4web.Compiler {
             this.nsmgr.AddNamespace("dc", Namespaces.DC);
             this.nsmgr.AddNamespace("x4w", Namespaces.X4W);
             this.nsmgr.AddNamespace("x4h", Namespaces.X4H);
+            this.nsmgr.AddNamespace("x4f", Namespaces.X4F);
 
             // Add namespaces from file
             var lines = File.ReadAllLines(namespaceFile);
@@ -59,16 +61,16 @@ namespace Altairis.Xml4web.Compiler {
             // Import metadata from index page
             var indexFileName = Path.Combine(folderName, "index.md");
             if (File.Exists(indexFileName)) {
-                foreach (var item in this.GetMetadataElementsFromFile(indexFileName)) {
+                foreach (var item in this.GetMetadataElementsForPage(indexFileName)) {
                     folderElement.AppendChild(item);
                 }
             }
 
             // Import metadata from other pages
             foreach (var fileName in Directory.GetFiles(folderName, "*.md")) {
-                var fileElement = this.CreateElement("file");
+                var fileElement = this.CreateElement("page");
                 fileElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
-                foreach (var item in this.GetMetadataElementsFromFile(fileName)) {
+                foreach (var item in this.GetMetadataElementsForPage(fileName)) {
                     fileElement.AppendChild(item);
                 }
                 folderElement.AppendChild(fileElement);
@@ -84,17 +86,25 @@ namespace Altairis.Xml4web.Compiler {
 
         }
 
-        private IEnumerable<XmlElement> GetMetadataElementsFromFile(string mdFileName) {
-            if (File.Exists(mdFileName)) {
-                foreach (var item in this.GetMetadataFromFile(mdFileName)) {
+        private IEnumerable<XmlElement> GetMetadataElementsForPage(string mdFileName) {
+            var fi = new FileInfo(mdFileName);
+            if (!fi.Exists) yield break;
+
+            // Add general file metadata
+            yield return this.CreateQualifiedElement("x4f:creationTime", fi.CreationTime);
+            yield return this.CreateQualifiedElement("x4f:lastAccessTime", fi.LastAccessTime);
+            yield return this.CreateQualifiedElement("x4f:lastWriteTime", fi.LastWriteTime);
+            yield return this.CreateQualifiedElement("x4f:size", fi.Length);
+
+            // Add markdown-specific metadata
+            if (Path.GetExtension(mdFileName).Equals(".md", StringComparison.OrdinalIgnoreCase)) {
+                foreach (var item in this.GetMetadataFromMarkdownFile(mdFileName)) {
                     var separatorIndex = item.Key.IndexOf(':');
                     if (separatorIndex == -1 || separatorIndex == 0 || separatorIndex == item.Key.Length - 1) {
                         this.Errors.Add(new KeyValuePair<string, string>(mdFileName, $"Invalid syntax of metadata key \"{item.Key}\"."));
-                    }
-                    else if (string.IsNullOrEmpty(this.nsmgr.LookupNamespace(item.Key.Substring(0, separatorIndex)))) {
+                    } else if (string.IsNullOrEmpty(this.nsmgr.LookupNamespace(item.Key.Substring(0, separatorIndex)))) {
                         this.Errors.Add(new KeyValuePair<string, string>(mdFileName, $"Unknown prefix of metadata key \"{item.Key}\"."));
-                    }
-                    else {
+                    } else {
                         yield return this.CreateQualifiedElement(item.Key, item.Value);
                     }
                 }
@@ -103,9 +113,9 @@ namespace Altairis.Xml4web.Compiler {
 
         // Helper methods
 
-        private IEnumerable<KeyValuePair<string, string>> GetMetadataFromFile(string fileName) {
+        private IEnumerable<KeyValuePair<string, string>> GetMetadataFromMarkdownFile(string mdFileName) {
             var metadataRead = false;
-            using (var sr = File.OpenText(fileName)) {
+            using (var sr = File.OpenText(mdFileName)) {
                 while (!sr.EndOfStream) {
                     var line = sr.ReadLine().Trim();
                     if (metadataRead && line == string.Empty) break;
@@ -145,6 +155,15 @@ namespace Altairis.Xml4web.Compiler {
 
             var e = this.CreateQualifiedElement(qualifiedName);
             e.InnerText = XmlConvert.ToString(date, XmlDateTimeSerializationMode.Local);
+            return e;
+        }
+
+        private XmlElement CreateQualifiedElement(string qualifiedName, long number) {
+            if (qualifiedName == null) throw new ArgumentNullException(nameof(qualifiedName));
+            if (string.IsNullOrWhiteSpace(qualifiedName)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(qualifiedName));
+
+            var e = this.CreateQualifiedElement(qualifiedName);
+            e.InnerText = XmlConvert.ToString(number);
             return e;
         }
 
