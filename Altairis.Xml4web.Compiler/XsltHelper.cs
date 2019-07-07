@@ -77,5 +77,7 @@ namespace Altairis.Xml4web.Compiler {
             return HttpUtility.UrlEncode(s);
         }
 
+        public string Replace(string s, string oldValue, string newValue) => s?.Replace(oldValue, newValue);
+
     }
 }
