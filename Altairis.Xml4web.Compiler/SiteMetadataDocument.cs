@@ -78,6 +78,9 @@ namespace Altairis.Xml4web.Compiler {
 
             // Process files
             foreach (var fileName in Directory.GetFiles(folderName)) {
+                // Ignore system files
+                if (Path.GetFileName(fileName).StartsWith("_") || Path.GetFileName(fileName).StartsWith(".") || Path.GetFileName(fileName).Contains("~")) continue;
+
                 var extension = Path.GetExtension(fileName).ToLower();
                 XmlElement itemElement;
 
@@ -134,7 +137,23 @@ namespace Altairis.Xml4web.Compiler {
             var fi = new FileInfo(imageFileName);
             if (!fi.Exists) return Enumerable.Empty<XmlElement>();
 
-            var exif = this.ReadExifMetadata(fi.FullName);
+            IEnumerable<KeyValuePair<string, string>> exif;
+
+            var cacheFileName = fi.FullName + "~exifcache";
+            if (File.Exists(cacheFileName)) {
+                // Use found cache
+                var cacheLines = File.ReadAllLines(cacheFileName);
+                exif = cacheLines.Select(x => {
+                    var data = x.Split('\t');
+                    return new KeyValuePair<string, string>(data[0], data[1]);
+                });
+            } else {
+                // Cache not found - read data and create cache
+                exif = this.ReadExifMetadata(fi.FullName);
+                var cacheLines = exif.Select(x => string.Join("\t", x.Key, x.Value));
+                File.WriteAllLines(cacheFileName, cacheLines);
+            }
+
             return exif.Select(x => this.CreateQualifiedElement(x.Key, x.Value));
         }
 
