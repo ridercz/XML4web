@@ -70,7 +70,13 @@ namespace Altairis.Xml4web.Compiler {
             folderName = folderName.TrimEnd('\\');
             var pathId = folderName.Substring(this.SourceFolderName.Length).Replace('\\', '/');
             var folderElement = this.CreateElement("folder");
-            folderElement.SetAttribute("path", string.IsNullOrEmpty(pathId) ? "/" : pathId);
+
+            // Add path and name
+            if (!string.IsNullOrEmpty(pathId)) {
+                folderElement.SetAttribute("path", pathId);
+                folderElement.AppendChild(this.CreateQualifiedElement("x4f:name", pathId.Substring(pathId.LastIndexOf('/') + 1)));
+            }
+
 
             // Import metadata from index page, if any
             var indexFileName = Path.Combine(folderName, "index.md");
@@ -90,6 +96,7 @@ namespace Altairis.Xml4web.Compiler {
                         itemElement = this.CreateElement("page");
                         itemElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
                         itemElement.AppendChildren(this.GetMetadataElementsForPage(fileName));
+                        itemElement.AppendChild(this.CreateQualifiedElement("x4f:name", Path.GetFileName(fileName)));
                         break;
                     case ".jpg":
                     case ".jpeg":
@@ -98,11 +105,13 @@ namespace Altairis.Xml4web.Compiler {
                         itemElement = this.CreateElement("image");
                         itemElement.SetAttribute("path", pathId + "/" + Path.GetFileName(fileName));
                         itemElement.AppendChildren(this.GetMetadataElementsForImage(fileName));
+                        itemElement.AppendChild(this.CreateQualifiedElement("x4f:name", Path.GetFileName(fileName)));
                         break;
                     default:
                         // Other file
                         itemElement = this.CreateElement("file");
                         itemElement.SetAttribute("path", pathId + "/" + Path.GetFileName(fileName));
+                        itemElement.AppendChild(this.CreateQualifiedElement("x4f:name", Path.GetFileName(fileName)));
                         break;
                 }
 
