@@ -206,9 +206,9 @@ namespace Altairis.Xml4web.Compiler {
 
         private IEnumerable<KeyValuePair<string, string>> ReadExifMetadata(string imageFileName) {
             using (var img = Image.Load(imageFileName)) {
-                if (img.MetaData.ExifProfile != null) {
+                if (img.Metadata.ExifProfile != null) {
                     // Get EXIF metadata
-                    foreach (var item in img.MetaData.ExifProfile.Values) {
+                    foreach (var item in img.Metadata.ExifProfile.Values) {
                         var stringValue = item.ToPrettyString();
                         if (string.IsNullOrWhiteSpace(stringValue)) continue;
 
