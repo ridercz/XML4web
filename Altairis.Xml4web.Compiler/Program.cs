@@ -8,11 +8,6 @@ using System.Xml.Xsl;
 
 namespace Altairis.Xml4web.Compiler {
     internal class Program {
-#if NET47
-        private const string FX_NAME = "NetFX";
-#elif NETCOREAPP
-        private const string FX_NAME = "CoreCLR";
-#endif
         public const int ERRORLEVEL_SUCCESS = 0;
         public const int ERRORLEVEL_FAILURE = 1;
 
@@ -22,8 +17,8 @@ namespace Altairis.Xml4web.Compiler {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Console.WriteLine();
             Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Static Site Generator");
-            Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}/{FX_NAME}");
-            Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018-2019");
+            Console.WriteLine($@" \ /  |\ /| |    |  |                |     Version {version}");
+            Console.WriteLine($@"  O   | O | |    o--O o   o   o o-o  O-o   Copyright (c) 2018-2020");
             Console.WriteLine($@" / \  |   | |       |  \ / \ /  |-'  |  |  Michal A. Valášek - Altairis");
             Console.WriteLine($@"o   o o   o O---o   o   o   o   o-o  o-o   www.xml4web.com | www.rider.cz");
             Console.WriteLine();
