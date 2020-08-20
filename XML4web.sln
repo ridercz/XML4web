@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2035
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altairis.Xml4web.Importer.Nemesis", "Altairis.Xml4Web.Importer.Nemesis\Altairis.Xml4web.Importer.Nemesis.csproj", "{5C473E0F-0631-4BE3-B17B-D5D11784AD42}"
 EndProject
@@ -10,7 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
 		LICENSE = LICENSE
-		Deploy\package.cmd = Deploy\package.cmd
 		README.md = README.md
 	EndProjectSection
 EndProject
