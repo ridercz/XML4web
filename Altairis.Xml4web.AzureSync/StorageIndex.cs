@@ -36,9 +36,7 @@ namespace Altairis.Xml4web.AzureSync {
             return JsonConvert.DeserializeObject<StorageIndex>(json);
         }
 
-        public static StorageIndex LoadOrCreateEmpty(CloudBlob blob) {
-            return LoadOrCreateEmptyAsync(blob).Result;
-        }
+        public static StorageIndex LoadOrCreateEmpty(CloudBlob blob) => LoadOrCreateEmptyAsync(blob).Result;
 
         public async Task SaveAsync(CloudBlockBlob blob) {
             if (blob == null) throw new ArgumentNullException(nameof(blob));
@@ -54,8 +52,6 @@ namespace Altairis.Xml4web.AzureSync {
 
         }
 
-        public void Save(CloudBlockBlob blob) {
-            this.SaveAsync(blob).Wait();
-        }
+        public void Save(CloudBlockBlob blob) => this.SaveAsync(blob).Wait();
     }
 }

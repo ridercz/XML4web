@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using SixLabors.ImageSharp.MetaData.Profiles.Exif;
 using SixLabors.ImageSharp.Primitives;
@@ -38,8 +36,7 @@ namespace Altairis.Xml4web.Compiler {
                 try {
                     var array = value as Rational[];
                     return $"{array[0]}°{array[1]}'{XmlConvert.ToString(array[2].ToDouble())}\"";
-                }
-                catch (Exception) {
+                } catch (Exception) {
                     return null;
                 }
             }

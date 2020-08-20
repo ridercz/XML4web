@@ -6,10 +6,10 @@ using System.Xml;
 
 namespace Altairis.Xml4web.Compiler {
     public class XmlOutputProcessor {
-        readonly XmlDocument mainDoc;
-        readonly string baseFolder;
-        readonly string prependDoctype;
-        readonly XmlNamespaceManager nsmgr;
+        private readonly XmlDocument mainDoc;
+        private readonly string baseFolder;
+        private readonly string prependDoctype;
+        private readonly XmlNamespaceManager nsmgr;
 
         public XmlOutputProcessor(string mainDocName, string baseFolder, string prependDoctype) {
             this.mainDoc = new XmlDocument();
@@ -29,8 +29,7 @@ namespace Altairis.Xml4web.Compiler {
             if (outputDocuments.Count == 0) {
                 // Single document
                 this.SaveFile(this.mainDoc, mainFileName);
-            }
-            else {
+            } else {
                 // Multiple documents
                 foreach (XmlElement item in outputDocuments) {
                     var href = item.GetAttribute("href");

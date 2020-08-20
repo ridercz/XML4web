@@ -4,7 +4,7 @@ using System.IO;
 using Newtonsoft.Json;
 
 namespace Altairis.Xml4web.Importer.RssFeed {
-    class ImportConfiguration {
+    internal class ImportConfiguration {
 
         public static ImportConfiguration Load(string fileName) {
             Contract.Requires(string.IsNullOrEmpty(fileName) == false);

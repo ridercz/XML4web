@@ -7,7 +7,7 @@ using System.Xml.XPath;
 using System.Xml.Xsl;
 
 namespace Altairis.Xml4web.Compiler {
-    class Program {
+    internal class Program {
 #if NET47
         private const string FX_NAME = "NetFX";
 #elif NETCOREAPP
@@ -18,7 +18,7 @@ namespace Altairis.Xml4web.Compiler {
 
         private static BuildConfiguration config;
 
-        static void Main(string[] args) {
+        private static void Main(string[] args) {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Console.WriteLine();
             Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Static Site Generator");
@@ -50,8 +50,7 @@ namespace Altairis.Xml4web.Compiler {
             if (!logFiles.Any()) {
                 Console.WriteLine($"Build completed successfully in {tsw.ElapsedMilliseconds} ms.");
                 Environment.Exit(ERRORLEVEL_SUCCESS);
-            }
-            else {
+            } else {
                 Console.WriteLine($"Build failed in {tsw.ElapsedMilliseconds} ms. See the following log files:");
                 Console.WriteLine(string.Join(Environment.NewLine, logFiles));
                 Environment.Exit(ERRORLEVEL_FAILURE);
@@ -76,8 +75,7 @@ namespace Altairis.Xml4web.Compiler {
             try {
                 config = BuildConfiguration.Load(buildScriptFileName);
                 Console.WriteLine("OK");
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine("Failed!");
                 Console.WriteLine(ex.Message);
                 Environment.Exit(ERRORLEVEL_FAILURE);
@@ -100,8 +98,7 @@ namespace Altairis.Xml4web.Compiler {
                     FileSystemHelper.DirectoryCopy(config.StaticFolder, config.TargetFolder);
                     sw.Stop();
                     Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     Console.WriteLine("Failed!");
                     Console.WriteLine(ex.Message);
                     Environment.Exit(ERRORLEVEL_FAILURE);
@@ -119,8 +116,7 @@ namespace Altairis.Xml4web.Compiler {
             if (doc.Errors.Any()) {
                 Console.WriteLine($"Done in {sw.ElapsedMilliseconds} ms with {doc.Errors.Count()} errors, see metadata.xml.log for details.");
                 File.WriteAllLines(Path.Combine(config.WorkFolder, "metadata.xml.log"), doc.Errors.Select(x => string.Join("\t", x.Key, x.Value)));
-            }
-            else {
+            } else {
                 Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
             }
             return doc;
@@ -176,8 +172,7 @@ namespace Altairis.Xml4web.Compiler {
 
                 sw.Stop();
                 Console.WriteLine($"OK in {sw.ElapsedMilliseconds} ms");
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine("Failed!");
                 var errorLogName = Path.Combine(config.WorkFolder, Path.GetFileName(templateFileName) + ".log");
                 Console.WriteLine($"For details see {errorLogName}");

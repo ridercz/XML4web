@@ -37,8 +37,7 @@ namespace Altairis.Xml4web.AzureSync {
                 var r = this.Run(job);
                 if (r) {
                     sc++;
-                }
-                else {
+                } else {
                     fc++;
                 }
             }
@@ -88,8 +87,7 @@ namespace Altairis.Xml4web.AzureSync {
                 try {
                     action();
                     return true;
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     if (remainingRetryCount == 0) {
                         Console.WriteLine($"Failed!");
                         Console.WriteLine(ex.Message);

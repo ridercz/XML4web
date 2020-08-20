@@ -10,9 +10,7 @@ namespace Altairis.Xml4web.AzureSync {
         private const int FILE_SIZE_THRESHOLD = 32 * MEGABYTE;  // 32 MB
         private const int BLOCK_SIZE = 4 * MEGABYTE;            // 4 MB
 
-        public static void SmartUploadFile(this CloudBlockBlob blob, string fileName, Action<int, int> blobProgressCallback = null) {
-            blob.SmartUploadFileAsync(fileName, blobProgressCallback).Wait();
-        }
+        public static void SmartUploadFile(this CloudBlockBlob blob, string fileName, Action<int, int> blobProgressCallback = null) => blob.SmartUploadFileAsync(fileName, blobProgressCallback).Wait();
 
         public static async Task SmartUploadFileAsync(this CloudBlockBlob blob, string fileName, Action<int, int> blobProgressCallback = null) {
             if (blob == null) throw new ArgumentNullException(nameof(blob));
@@ -24,8 +22,7 @@ namespace Altairis.Xml4web.AzureSync {
             using (var file = fileInfo.OpenRead()) {
                 if (file.Length <= FILE_SIZE_THRESHOLD) {
                     await blob.UploadFromStreamAsync(file);
-                }
-                else {
+                } else {
                     var blockCount = (int)Math.Ceiling(((float)file.Length / BLOCK_SIZE));
                     var blockIds = new List<string>();
                     var currentBlockId = 0;
