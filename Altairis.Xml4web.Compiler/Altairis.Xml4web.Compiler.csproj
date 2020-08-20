@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <AssemblyName>x4w-compiler</AssemblyName>
-    <Version>$([System.DateTime]::UtcNow.ToString('yyyy.MM.dd.HHmm'))</Version>
+    <Version>2.0.0</Version>
     <PackageId>Altairis.Xml4web.Compiler</PackageId>
     <Authors>Michal A. Valášek</Authors>
     <Company>Altairis, s. r. o.</Company>
