@@ -8,10 +8,9 @@ namespace Altairis.Xml4web.Compiler {
     public class XmlOutputProcessor {
         private readonly XmlDocument mainDoc;
         private readonly string baseFolder;
-        private readonly string prependDoctype;
         private readonly XmlNamespaceManager nsmgr;
 
-        public XmlOutputProcessor(string mainDocName, string baseFolder, string prependDoctype) {
+        public XmlOutputProcessor(string mainDocName, string baseFolder) {
             this.mainDoc = new XmlDocument();
             this.mainDoc.Load(mainDocName);
 
@@ -19,7 +18,6 @@ namespace Altairis.Xml4web.Compiler {
             this.nsmgr.AddNamespace("x4o", Namespaces.X4O);
 
             this.baseFolder = baseFolder;
-            this.prependDoctype = prependDoctype;
         }
 
         public void SaveAllFiles(string mainFileName) {
@@ -54,7 +52,7 @@ namespace Altairis.Xml4web.Compiler {
             }
 
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(this.prependDoctype) && doc.DocumentElement.LocalName.Equals("html", StringComparison.OrdinalIgnoreCase)) sb.AppendLine(this.prependDoctype);
+            if (doc.DocumentElement.LocalName.Equals("html", StringComparison.OrdinalIgnoreCase)) sb.AppendLine("<!DOCTYPE html>");
             var settings = new XmlWriterSettings {
                 Encoding = Encoding.UTF8,
                 Indent = true,

@@ -131,7 +131,7 @@ namespace Altairis.Xml4web.Compiler {
                 RunTransform(metadataDocument, templateFileName, outputFileName);
 
                 Console.Write("  Running post-processor...");
-                var proc = new XmlOutputProcessor(outputFileName, config.TargetFolder, config.PrependHtmlDoctype);
+                var proc = new XmlOutputProcessor(outputFileName, config.TargetFolder);
                 proc.SaveAllFiles(transform.Value);
                 Console.WriteLine("OK");
             }
