@@ -33,10 +33,9 @@ namespace Altairis.Xml4web.Compiler {
 
         public string ComputeHash(string path) {
             var fullFileName = Path.Combine(this._config.StaticFolder, path.Trim('/', '\\'));
-            using (var sha = new System.Security.Cryptography.SHA1Managed()) {
-                var hash = sha.ComputeHash(File.ReadAllBytes(fullFileName));
-                return string.Join(string.Empty, hash.Select(x => x.ToString("X2")));
-            }
+            using var sha = new System.Security.Cryptography.SHA1Managed();
+            var hash = sha.ComputeHash(File.ReadAllBytes(fullFileName));
+            return string.Join(string.Empty, hash.Select(x => x.ToString("X2")));
         }
 
         public string GetItemHtml(string path) {

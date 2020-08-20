@@ -15,13 +15,13 @@ namespace Altairis.Xml4web.Compiler {
         public static string ToPrettyString(this IExifValue exif) {
             if (exif == null || exif.DataType == ExifDataType.Undefined || exif.DataType == ExifDataType.Unknown) return null;
 
-            string GetLabel(object value, string labels) {
+            static string GetLabel(object value, string labels) {
                 var labelArray = labels.Split(',').Select(s => s.Trim()).ToArray();
                 var index = (ushort)value;
                 return index < 0 || index >= labelArray.LongLength ? labelArray[0] : labelArray[index];
             }
 
-            IEnumerable<string> GetFlashFlags(object value) {
+            static IEnumerable<string> GetFlashFlags(object value) {
                 var flags = (ushort)value;
                 yield return (flags & 1) != 0 ? "Fired" : "Not fired";
                 if ((flags & 2) != 0) yield return "Strobe return light detected";
@@ -32,7 +32,7 @@ namespace Altairis.Xml4web.Compiler {
                 if ((flags & 64) != 0) yield return "Red eye reduction mode";
             }
 
-            string GetGpsCoordinate(object value) {
+            static string GetGpsCoordinate(object value) {
                 try {
                     var array = value as Rational[];
                     return $"{array[0]}°{array[1]}'{XmlConvert.ToString(array[2].ToDouble())}\"";

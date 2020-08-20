@@ -63,7 +63,9 @@ namespace Altairis.Xml4web.Importer.Nemesis {
 
             // Load data from database
             Console.Write("Loading articles from database...");
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
             using (var da = new SqlDataAdapter(Properties.Resources.ArticleDump, config.ConnectionString)) {
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                 articles = new DataTable();
                 da.Fill(articles);
             }
@@ -303,7 +305,7 @@ namespace Altairis.Xml4web.Importer.Nemesis {
             if (string.IsNullOrWhiteSpace(contentType)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(contentType));
 
             if (!s.EndsWith(".*", StringComparison.Ordinal)) return s;
-            s = s.Substring(0, s.Length - 1);
+            s = s[0..^1];
 
             if (contentType.EndsWith("jpeg", StringComparison.OrdinalIgnoreCase) || contentType.EndsWith("jpg", StringComparison.OrdinalIgnoreCase)) {
                 s += "jpg";

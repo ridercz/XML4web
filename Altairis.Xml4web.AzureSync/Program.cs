@@ -234,28 +234,27 @@ namespace Altairis.Xml4web.AzureSync {
             if (fileName == null) throw new ArgumentNullException(nameof(fileName));
             if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(fileName));
 
-            using (var ms = File.OpenRead(fileName))
+            using var ms = File.OpenRead(fileName);
 #if NET47
             using (var sha = new System.Security.Cryptography.SHA256CryptoServiceProvider()) {
 #else
-            using (var sha = System.Security.Cryptography.SHA256.Create()) {
+            using var sha = System.Security.Cryptography.SHA256.Create();
 #endif
-                // Compute MD5 hash
-                var buffer = new byte[HASH_BUFFER];
-                while (true) {
-                    var bytesRead = ms.Read(buffer, 0, buffer.Length);
-                    if (bytesRead == buffer.Length) {
-                        sha.TransformBlock(buffer, 0, buffer.Length, buffer, 0);
-                    } else {
-                        sha.TransformFinalBlock(buffer, 0, bytesRead);
-                        break;
-                    }
+            // Compute MD5 hash
+            var buffer = new byte[HASH_BUFFER];
+            while (true) {
+                var bytesRead = ms.Read(buffer, 0, buffer.Length);
+                if (bytesRead == buffer.Length) {
+                    sha.TransformBlock(buffer, 0, buffer.Length, buffer, 0);
+                } else {
+                    sha.TransformFinalBlock(buffer, 0, bytesRead);
+                    break;
                 }
-
-                // Convert to string
-                var hashString = string.Join(string.Empty, sha.Hash.Select(x => x.ToString("X2")));
-                return hashString;
             }
+
+            // Convert to string
+            var hashString = string.Join(string.Empty, sha.Hash.Select(x => x.ToString("X2")));
+            return hashString;
         }
 
         private static void DisplayStatistics() {

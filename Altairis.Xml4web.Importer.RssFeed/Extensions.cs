@@ -37,7 +37,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
 
         public static void AppendMetadataLine(this StringBuilder sb, string name, object value) {
             if (value == null || value is DBNull || string.IsNullOrWhiteSpace(value.ToString())) return;
-            if (value is DateTime) value = XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.RoundtripKind);
+            if (value is DateTime time) value = XmlConvert.ToString(time, XmlDateTimeSerializationMode.RoundtripKind);
 
             sb.AppendLine($"<!-- {name} = {value.ToString().ToSingleLine()} -->");
         }

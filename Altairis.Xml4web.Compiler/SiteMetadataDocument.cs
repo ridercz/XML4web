@@ -189,39 +189,37 @@ namespace Altairis.Xml4web.Compiler {
 
         private IEnumerable<KeyValuePair<string, string>> ReadMarkdownMetadata(string mdFileName) {
             var metadataRead = false;
-            using (var sr = File.OpenText(mdFileName)) {
-                while (!sr.EndOfStream) {
-                    var line = sr.ReadLine().Trim();
-                    if (metadataRead && line == string.Empty) break;
-                    if (line.Length < 7) continue;
-                    if (!line.StartsWith("<!--", StringComparison.Ordinal) || !line.EndsWith("-->", StringComparison.Ordinal)) continue;
-                    line = line.Substring(4, line.Length - 7).Trim(); // remove comment marks and trim whitespace
-                    var lineData = line.Split(new char[] { '=' }, 2);
-                    if (lineData.Length != 2) break; // not "name = value" comment
-                    yield return new KeyValuePair<string, string>(lineData[0].Trim(), lineData[1].Trim());
-                    metadataRead = true;
-                }
+            using var sr = File.OpenText(mdFileName);
+            while (!sr.EndOfStream) {
+                var line = sr.ReadLine().Trim();
+                if (metadataRead && string.IsNullOrEmpty(line)) break;
+                if (line.Length < 7) continue;
+                if (!line.StartsWith("<!--", StringComparison.Ordinal) || !line.EndsWith("-->", StringComparison.Ordinal)) continue;
+                line = line[4..^3].Trim(); // remove comment marks and trim whitespace
+                var lineData = line.Split(new char[] { '=' }, 2);
+                if (lineData.Length != 2) break; // not "name = value" comment
+                yield return new KeyValuePair<string, string>(lineData[0].Trim(), lineData[1].Trim());
+                metadataRead = true;
             }
         }
 
         private IEnumerable<KeyValuePair<string, string>> ReadExifMetadata(string imageFileName) {
-            using (var img = Image.Load(imageFileName)) {
-                if (img.Metadata.ExifProfile != null) {
-                    // Get EXIF metadata
-                    foreach (var item in img.Metadata.ExifProfile.Values) {
-                        var stringValue = item.ToPrettyString();
-                        if (string.IsNullOrWhiteSpace(stringValue)) continue;
+            using var img = Image.Load(imageFileName);
+            if (img.Metadata.ExifProfile != null) {
+                // Get EXIF metadata
+                foreach (var item in img.Metadata.ExifProfile.Values) {
+                    var stringValue = item.ToPrettyString();
+                    if (string.IsNullOrWhiteSpace(stringValue)) continue;
 
-                        var stringName = item.Tag.ToString();
-                        stringName = char.ToLowerInvariant(stringName[0]) + stringName.Substring(1);
+                    var stringName = item.Tag.ToString();
+                    stringName = char.ToLowerInvariant(stringName[0]) + stringName.Substring(1);
 
-                        yield return new KeyValuePair<string, string>("exif:" + stringName, stringValue);
-                    }
-                } else {
-                    // No EXIF metadata found, send at least size
-                    yield return new KeyValuePair<string, string>("exif:pixelXDimension", img.Width.ToString());
-                    yield return new KeyValuePair<string, string>("exif:pixelYDimension", img.Height.ToString());
+                    yield return new KeyValuePair<string, string>("exif:" + stringName, stringValue);
                 }
+            } else {
+                // No EXIF metadata found, send at least size
+                yield return new KeyValuePair<string, string>("exif:pixelXDimension", img.Width.ToString());
+                yield return new KeyValuePair<string, string>("exif:pixelYDimension", img.Height.ToString());
             }
         }
 
