@@ -7,14 +7,14 @@ using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Altairis.Xml4web.Importer.RssFeed {
-    class Program {
+    internal class Program {
         private const int ERRORLEVEL_SUCCESS = 0;
         private const int ERRORLEVEL_FAILURE = 1;
 
         private static ImportConfiguration config;
         private static XmlNamespaceManager nsmgr;
 
-        static void Main(string[] args) {
+        private static void Main(string[] args) {
             Console.WriteLine("Altairis XML4web Importer from RSS Feed");
             Console.WriteLine("Copyright (c) Michal A. Valášek - Altairis, 2018");
             Console.WriteLine();
@@ -47,8 +47,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
             try {
                 doc.Load(config.RssUrl);
                 Console.WriteLine("OK");
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine("Failed!");
                 Console.WriteLine(ex.Message);
                 Environment.Exit(ERRORLEVEL_FAILURE);
@@ -61,8 +60,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
                 if (attr.Name == "xmlns") {
                     nsmgr.AddNamespace(string.Empty, attr.Value);
                     Console.WriteLine($"  Default namespace = {attr.Value}");
-                }
-                else if (attr.Prefix == "xmlns") {
+                } else if (attr.Prefix == "xmlns") {
                     nsmgr.AddNamespace(attr.LocalName, attr.Value);
                     Console.WriteLine($"  {attr.LocalName} = {attr.Value}");
                 }
@@ -103,8 +101,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
             try {
                 Directory.CreateDirectory(Path.GetDirectoryName(fileName));
                 File.WriteAllText(fileName, sb.ToString());
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine("Failed!");
                 Console.WriteLine(ex.Message);
                 Environment.Exit(ERRORLEVEL_FAILURE);
@@ -153,8 +150,7 @@ namespace Altairis.Xml4web.Importer.RssFeed {
                 var placeholder = m.Groups[1].Value.Split('|', 2);
                 if (placeholder.Length == 1) {
                     return metadata[placeholder[0]].ToString().ToUrlKey();
-                }
-                else {
+                } else {
                     var formattable = metadata[placeholder[0]] as IFormattable;
                     return formattable.ToString(placeholder[1], CultureInfo.InvariantCulture).ToUrlKey();
                 }

@@ -33,10 +33,9 @@ namespace Altairis.Xml4web.Compiler {
 
         public string ComputeHash(string path) {
             var fullFileName = Path.Combine(this._config.StaticFolder, path.Trim('/', '\\'));
-            using (var sha = new System.Security.Cryptography.SHA1Managed()) {
-                var hash = sha.ComputeHash(File.ReadAllBytes(fullFileName));
-                return string.Join(string.Empty, hash.Select(x => x.ToString("X2")));
-            }
+            using var sha = new System.Security.Cryptography.SHA1Managed();
+            var hash = sha.ComputeHash(File.ReadAllBytes(fullFileName));
+            return string.Join(string.Empty, hash.Select(x => x.ToString("X2")));
         }
 
         public string GetItemHtml(string path) {
@@ -65,17 +64,15 @@ namespace Altairis.Xml4web.Compiler {
 
         public string RemoveDiacritics(string s) {
             s = s.Normalize(NormalizationForm.FormD);
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            for (int i = 0; i < s.Length; i++) {
+            for (var i = 0; i < s.Length; i++) {
                 if (CharUnicodeInfo.GetUnicodeCategory(s[i]) != UnicodeCategory.NonSpacingMark) sb.Append(s[i]);
             }
             return sb.ToString().Normalize(NormalizationForm.FormC);
         }
 
-        public string UrlEncode(string s) {
-            return HttpUtility.UrlEncode(s);
-        }
+        public string UrlEncode(string s) => HttpUtility.UrlEncode(s);
 
         public string Replace(string s, string oldValue, string newValue) => s?.Replace(oldValue, newValue);
 

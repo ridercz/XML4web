@@ -20,8 +20,7 @@ namespace Altairis.Xml4web.Compiler {
                     try {
                         Directory.Delete(folderName, recursive: true);
                         break;
-                    }
-                    catch (IOException ex) {
+                    } catch (IOException ex) {
                         Console.WriteLine("Failed!");
                         Console.WriteLine(ex.Message);
 
@@ -50,8 +49,7 @@ namespace Altairis.Xml4web.Compiler {
                         Directory.CreateDirectory(targetPath);
                         f.CopyTo(Path.Combine(targetPath, f.Name), overwrite: true);
                         break;
-                    }
-                    catch (Exception ex) {
+                    } catch (Exception ex) {
                         Console.WriteLine("Failed!");
                         Console.WriteLine(ex.Message);
 

@@ -331,6 +331,3 @@ ASALocalRun/
 
 # Project specific files
 /Altairis.Xml4web.AzureSync/SyncJobs/
-/Deploy/Distribution
-/Deploy/*.zip
-

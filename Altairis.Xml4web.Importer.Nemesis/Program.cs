@@ -11,18 +11,18 @@ using System.Xml;
 using HtmlAgilityPack;
 
 namespace Altairis.Xml4web.Importer.Nemesis {
-    class Program {
+    internal class Program {
         private const int ERRORLEVEL_SUCCESS = 0;
         private const int ERRORLEVEL_FAILURE = 1;
 
         private static ImportConfiguration config;
         private static DataTable articles;
-        private static StringBuilder idMapSb = new StringBuilder();
-        private static StringBuilder linkListSb = new StringBuilder();
-        private static List<string> failedFiles = new List<string>();
-        private static Dictionary<string, string> perexPictureMap = new Dictionary<string, string>();
+        private static readonly StringBuilder idMapSb = new StringBuilder();
+        private static readonly StringBuilder linkListSb = new StringBuilder();
+        private static readonly List<string> failedFiles = new List<string>();
+        private static readonly Dictionary<string, string> perexPictureMap = new Dictionary<string, string>();
 
-        static void Main(string[] args) {
+        private static void Main(string[] args) {
             Console.WriteLine("Altairis Xml4web Importer from Nemesis Publishing");
             Console.WriteLine("Copyright (c) Michal A. Valášek - Altairis, 2018");
             Console.WriteLine();
@@ -63,7 +63,9 @@ namespace Altairis.Xml4web.Importer.Nemesis {
 
             // Load data from database
             Console.Write("Loading articles from database...");
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
             using (var da = new SqlDataAdapter(Properties.Resources.ArticleDump, config.ConnectionString)) {
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                 articles = new DataTable();
                 da.Fill(articles);
             }
@@ -76,8 +78,7 @@ namespace Altairis.Xml4web.Importer.Nemesis {
                 var newId = ProcessArticle(row);
                 if (string.IsNullOrEmpty(newId)) {
                     skippedCount++;
-                }
-                else {
+                } else {
                     importedCount++;
                     idMapSb.AppendLine(string.Join('\t', row["ArticleId"], newId));
                 }
@@ -158,8 +159,7 @@ namespace Altairis.Xml4web.Importer.Nemesis {
                         var dataUri = $"data:{pictureType};base64,{Convert.ToBase64String(pictureData)}";
                         sb.AppendMetadataLine("x4w:pictureUrl", dataUri);
                         Console.WriteLine("  Embedding picture...OK");
-                    }
-                    else {
+                    } else {
                         // Save to path
                         var pictureFileName = AddExtensionFromType(FormatDataString(config.ImportPicturesPath, row), pictureType);
                         var pictureUrl = AddExtensionFromType(FormatDataString(config.ImportPicturesUrl, row), pictureType);
@@ -181,14 +181,12 @@ namespace Altairis.Xml4web.Importer.Nemesis {
                     var md = HtmlToMarkdown(html);
                     sb.Append(md);
                     Console.WriteLine("OK");
-                }
-                catch (Exception) {
+                } catch (Exception) {
                     Console.WriteLine("Failed, fallback to HTML");
                     sb.Append(html);
                     failedFiles.Add(newId);
                 }
-            }
-            else {
+            } else {
                 sb.Append(html);
             }
 
@@ -307,15 +305,13 @@ namespace Altairis.Xml4web.Importer.Nemesis {
             if (string.IsNullOrWhiteSpace(contentType)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(contentType));
 
             if (!s.EndsWith(".*", StringComparison.Ordinal)) return s;
-            s = s.Substring(0, s.Length - 1);
+            s = s[0..^1];
 
             if (contentType.EndsWith("jpeg", StringComparison.OrdinalIgnoreCase) || contentType.EndsWith("jpg", StringComparison.OrdinalIgnoreCase)) {
                 s += "jpg";
-            }
-            else if (contentType.EndsWith("png", StringComparison.OrdinalIgnoreCase)) {
+            } else if (contentType.EndsWith("png", StringComparison.OrdinalIgnoreCase)) {
                 s += "png";
-            }
-            else {
+            } else {
                 s += "bin";
             }
 
@@ -327,8 +323,7 @@ namespace Altairis.Xml4web.Importer.Nemesis {
                 var placeholder = m.Groups[1].Value.Split(':', 2);
                 if (placeholder.Length == 1) {
                     return row[placeholder[0]].ToString().ToUrlKey();
-                }
-                else {
+                } else {
                     var formattable = row[placeholder[0]] as IFormattable;
                     return formattable.ToString(placeholder[1], CultureInfo.InvariantCulture).ToUrlKey();
                 }

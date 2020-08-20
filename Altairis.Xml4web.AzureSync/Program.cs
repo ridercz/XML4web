@@ -7,7 +7,7 @@ using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Altairis.Xml4web.AzureSync {
-    class Program {
+    internal class Program {
         public const int ERRORLEVEL_SUCCESS = 0;
         public const int ERRORLEVEL_FAILURE = 1;
 
@@ -25,14 +25,13 @@ namespace Altairis.Xml4web.AzureSync {
         private const int INDICATOR_STEP = 50;
 
         private static JobConfiguration config;
-        private static List<JobOperation> operations = new List<JobOperation>();
+        private static readonly List<JobOperation> operations = new List<JobOperation>();
         private static CloudBlobContainer webContainer;
         private static StorageCredentials credentials;
         private static CloudBlockBlob storageIndexBlob;
         private static StorageIndex storageIndex;
 
-
-        static void Main(string[] args) {
+        private static void Main(string[] args) {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             Console.WriteLine();
             Console.WriteLine($@"o   o o   o o    o  o                o     XML4web Azure Site Sync Tool");
@@ -66,8 +65,7 @@ namespace Altairis.Xml4web.AzureSync {
             Console.WriteLine();
             if (result.Failed == 0) {
                 Console.WriteLine($"All {result.Success} operations completed successfully in {sw.Elapsed}.");
-            }
-            else {
+            } else {
                 Console.WriteLine($"Successfully completed {result.Success} operations, {result.Failed} failed in {sw.Elapsed}.");
                 Console.WriteLine("See above messages on details about failed operations.");
             }
@@ -121,8 +119,7 @@ namespace Altairis.Xml4web.AzureSync {
                 storageIndex = StorageIndex.LoadOrCreateEmpty(storageIndexBlob);
                 Console.WriteLine($"OK, {storageIndex.Count} items");
 
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine("Failed!");
                 Console.WriteLine(ex.Message);
                 Environment.Exit(ERRORLEVEL_FAILURE);
@@ -147,8 +144,7 @@ namespace Altairis.Xml4web.AzureSync {
             try {
                 config = JobConfiguration.Load(jobConfigFileName);
                 Console.WriteLine("OK");
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine("Failed!");
                 Console.WriteLine(ex.Message);
                 Environment.Exit(ERRORLEVEL_FAILURE);
@@ -179,8 +175,7 @@ namespace Altairis.Xml4web.AzureSync {
             if (!fi.Name.Equals(config.IndexFileName, StringComparison.OrdinalIgnoreCase) && config.RemoveExtensions.Contains(fi.Extension, StringComparer.OrdinalIgnoreCase)) {
                 // Remove extension
                 r.StorageUri = new Uri(webContainer.Uri + "/" + r.LogicalName.Substring(0, r.LogicalName.Length - fi.Extension.Length));
-            }
-            else {
+            } else {
                 // Leave as is
                 r.StorageUri = new Uri(webContainer.Uri + "/" + r.LogicalName);
             }
@@ -202,16 +197,14 @@ namespace Altairis.Xml4web.AzureSync {
                         OperationType = JobOperationType.Delete,
                         StorageUri = storageUri
                     });
-                }
-                else {
+                } else {
                     // Compute SHA256 hash of local file
                     op.ContentHash = GetFileHash(op.LocalFileName);
 
                     // Do nothing if hashes match
                     if (op.ContentHash.Equals(item.Value, StringComparison.OrdinalIgnoreCase)) {
                         op.OperationType = JobOperationType.Ignore;
-                    }
-                    else {
+                    } else {
                         // Update if they don't
                         op.OperationType = JobOperationType.Update;
                     }
@@ -241,29 +234,27 @@ namespace Altairis.Xml4web.AzureSync {
             if (fileName == null) throw new ArgumentNullException(nameof(fileName));
             if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentException("Value cannot be empty or whitespace only string.", nameof(fileName));
 
-            using (var ms = File.OpenRead(fileName))
+            using var ms = File.OpenRead(fileName);
 #if NET47
             using (var sha = new System.Security.Cryptography.SHA256CryptoServiceProvider()) {
 #else
-            using (var sha = System.Security.Cryptography.SHA256.Create()) {
+            using var sha = System.Security.Cryptography.SHA256.Create();
 #endif
-                // Compute MD5 hash
-                var buffer = new byte[HASH_BUFFER];
-                while (true) {
-                    var bytesRead = ms.Read(buffer, 0, buffer.Length);
-                    if (bytesRead == buffer.Length) {
-                        sha.TransformBlock(buffer, 0, buffer.Length, buffer, 0);
-                    }
-                    else {
-                        sha.TransformFinalBlock(buffer, 0, bytesRead);
-                        break;
-                    }
+            // Compute MD5 hash
+            var buffer = new byte[HASH_BUFFER];
+            while (true) {
+                var bytesRead = ms.Read(buffer, 0, buffer.Length);
+                if (bytesRead == buffer.Length) {
+                    sha.TransformBlock(buffer, 0, buffer.Length, buffer, 0);
+                } else {
+                    sha.TransformFinalBlock(buffer, 0, bytesRead);
+                    break;
                 }
-
-                // Convert to string
-                var hashString = string.Join(string.Empty, sha.Hash.Select(x => x.ToString("X2")));
-                return hashString;
             }
+
+            // Convert to string
+            var hashString = string.Join(string.Empty, sha.Hash.Select(x => x.ToString("X2")));
+            return hashString;
         }
 
         private static void DisplayStatistics() {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ namespace Altairis.Xml4web.AzureSync {
         public string FolderName { get; set; }
         public bool ConvertToLowercase { get; set; }
         public string IndexFileName { get; set; }
-        public string[] RemoveExtensions { get; set; } = new string[0];
+        public IEnumerable<string> RemoveExtensions { get; set; } = Array.Empty<string>();
         public Dictionary<string, string> ContentTypeMap { get; set; } = new Dictionary<string, string>();
         public Dictionary<string, string> CacheControlRules { get; set; } = new Dictionary<string, string>();
 
