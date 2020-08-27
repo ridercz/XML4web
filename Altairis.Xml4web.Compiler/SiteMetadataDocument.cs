@@ -12,7 +12,7 @@ namespace Altairis.Xml4web.Compiler {
         // Factory method
 
         public static SiteMetadataDocument CreateFromFolder(string sourceFolderName) {
-            var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "namespaces.txt")) {
+            var doc = new SiteMetadataDocument(Path.Combine(sourceFolderName, "_namespaces")) {
                 SourceFolderName = sourceFolderName.TrimEnd('\\')
             };
             doc.ScanFolder(doc.SourceFolderName, doc.DocumentElement);
@@ -30,14 +30,14 @@ namespace Altairis.Xml4web.Compiler {
             this.nsmgr.AddNamespace("dcterms", Namespaces.DCTerms);
             this.nsmgr.AddNamespace("dc", Namespaces.DC);
             this.nsmgr.AddNamespace("x4w", Namespaces.X4W);
-            this.nsmgr.AddNamespace("x4h", Namespaces.X4H);
             this.nsmgr.AddNamespace("x4f", Namespaces.X4F);
             this.nsmgr.AddNamespace("exif", Namespaces.Exif);
 
             // Add namespaces from file
             if (!string.IsNullOrEmpty(namespaceFile) && File.Exists(namespaceFile)) {
-                var lines = File.ReadAllLines(namespaceFile);
+                var lines = File.ReadAllLines(namespaceFile).Select(s => s.Trim());
                 foreach (var line in lines) {
+                    if (line.StartsWith('#') || string.IsNullOrWhiteSpace(line)) continue;
                     var data = line.Split(new char[] { ':' }, 2);
                     if (data.Length != 2) continue;
                     this.nsmgr.AddNamespace(data[0], data[1]);
@@ -77,10 +77,12 @@ namespace Altairis.Xml4web.Compiler {
                 folderElement.AppendChild(this.CreateQualifiedElement("x4f:name", pathId.Substring(pathId.LastIndexOf('/') + 1)));
             }
 
-
             // Import metadata from index page, if any
             var indexFileName = Path.Combine(folderName, "index.md");
-            if (File.Exists(indexFileName)) folderElement.AppendChildren(this.GetMetadataElementsForPage(indexFileName));
+            if (File.Exists(indexFileName)) {
+                folderElement.AppendChildren(this.GetMetadataElementsForPage(indexFileName));
+                folderElement.AppendChildren(this.GetMetadataElementsForFile(indexFileName));
+            }
 
             // Process files
             foreach (var fileName in Directory.GetFiles(folderName)) {
@@ -93,8 +95,11 @@ namespace Altairis.Xml4web.Compiler {
                 switch (extension) {
                     case ".md":
                         // Markdown file
+                        var path = Path.GetFileName(fileName).EndsWith("index.md", StringComparison.OrdinalIgnoreCase)
+                            ? pathId
+                            : string.Concat(pathId, "/", Path.GetFileNameWithoutExtension(fileName));
                         itemElement = this.CreateElement("page");
-                        itemElement.SetAttribute("path", pathId + "/" + Path.GetFileNameWithoutExtension(fileName));
+                        itemElement.SetAttribute("path", path);
                         itemElement.AppendChildren(this.GetMetadataElementsForPage(fileName));
                         itemElement.AppendChild(this.CreateQualifiedElement("x4f:name", Path.GetFileName(fileName)));
                         break;
@@ -222,7 +227,6 @@ namespace Altairis.Xml4web.Compiler {
                 yield return new KeyValuePair<string, string>("exif:pixelYDimension", img.Height.ToString());
             }
         }
-
 
         // XML helper methods
 
