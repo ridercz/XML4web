@@ -17,7 +17,15 @@ namespace Altairis.Xml4web.Compiler {
             return obj;
         }
 
-        private string ExpandPath(string s) => Path.IsPathRooted(s) ? s : Path.Combine(Path.GetDirectoryName(this.FileName), s.Trim('/', '\\'));
+        private string ExpandPath(string s) {
+            if (string.IsNullOrEmpty(s)) {
+                return string.Empty;
+            } else if (Path.IsPathRooted(s)) {
+                return s;
+            } else {
+                return Path.Combine(Path.GetDirectoryName(this.FileName), s.Trim('/', '\\'));
+            }
+        }
 
         private void ExpandAllPaths() {
             this.SourceFolder = this.ExpandPath(this.SourceFolder);

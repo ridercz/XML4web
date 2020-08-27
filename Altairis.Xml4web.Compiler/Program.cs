@@ -85,7 +85,7 @@ namespace Altairis.Xml4web.Compiler {
             Directory.CreateDirectory(config.WorkFolder);
 
             // Copy static data to output folder
-            if (Directory.Exists(config.StaticFolder)) {
+            if (!string.IsNullOrEmpty(config.StaticFolder) && Directory.Exists(config.StaticFolder)) {
                 Console.Write($"Copying {config.StaticFolder} to {config.TargetFolder}...");
                 try {
                     var sw = new Stopwatch();
