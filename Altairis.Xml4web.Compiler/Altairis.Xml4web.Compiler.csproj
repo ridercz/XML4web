@@ -21,6 +21,7 @@
     <PackageIcon>logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/ridercz/XML4web.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <ApplicationIcon>x4w.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
