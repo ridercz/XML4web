@@ -9,9 +9,6 @@ using Microsoft.WindowsAzure.Storage.Blob;
 namespace Altairis.Xml4web.AzureSync {
     public class JobRunner {
         private const string HASH_HEADER_NAME = "X4W_SHA256";
-        private const int MEGABYTE = 1048576;                   // 1 MB
-        private const int FILE_SIZE_THRESHOLD = 32 * MEGABYTE;  // 32 MB
-        private const int BLOCK_SIZE = 4 * MEGABYTE;            // 4 MB
 
         public StorageCredentials StorageCredentials { get; }
         public Dictionary<string, string> ContentTypeMap { get; }
@@ -47,9 +44,7 @@ namespace Altairis.Xml4web.AzureSync {
         public bool Run(JobOperation job) {
             switch (job.OperationType) {
                 case JobOperationType.Upload:
-                    return this.RunWithRetry(() => this.RunUploadJob(job));
                 case JobOperationType.Update:
-                    if (!this.RunWithRetry(() => this.RunDeleteJob(job))) return false;
                     return this.RunWithRetry(() => this.RunUploadJob(job));
                 case JobOperationType.Delete:
                     return this.RunWithRetry(() => this.RunDeleteJob(job));
@@ -76,7 +71,7 @@ namespace Altairis.Xml4web.AzureSync {
             blob.Metadata.Add(HASH_HEADER_NAME, job.ContentHash);
             blob.Properties.ContentType = this.ContentTypeMap.FirstOrDefault(x => x.Key.Equals(Path.GetExtension(job.LocalFileName), StringComparison.OrdinalIgnoreCase)).Value ?? "application/octet-stream";
             blob.Properties.CacheControl = this.CacheControlRules.FirstOrDefault(x => Regex.IsMatch(job.LogicalName, x.Key)).Value ?? "no-cache, no-store, must-revalidate";
-            blob.SmartUploadFile(job.LocalFileName, (number, count) => { Console.Write("."); });
+            blob.SmartUploadFile(job.LocalFileName, (number, count) => Console.Write("."));
             Console.WriteLine("OK");
         }
 
