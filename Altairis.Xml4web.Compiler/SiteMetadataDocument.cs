@@ -98,8 +98,10 @@ namespace Altairis.Xml4web.Compiler {
                         var path = Path.GetFileName(fileName).EndsWith("index.md", StringComparison.OrdinalIgnoreCase)
                             ? pathId
                             : string.Concat(pathId, "/", Path.GetFileNameWithoutExtension(fileName));
+                        if (string.IsNullOrEmpty(path)) path = "/";
                         itemElement = this.CreateElement("page");
                         itemElement.SetAttribute("path", path);
+                        itemElement.SetAttribute("filePath", string.Concat(pathId, "/", Path.GetFileNameWithoutExtension(fileName)));
                         itemElement.AppendChildren(this.GetMetadataElementsForPage(fileName));
                         itemElement.AppendChild(this.CreateQualifiedElement("x4f:name", Path.GetFileName(fileName)));
                         break;
